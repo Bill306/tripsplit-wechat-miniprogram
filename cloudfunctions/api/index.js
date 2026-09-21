@@ -76,10 +76,12 @@ async function allWhere(collection, where, pageSize = 100) {
   }
 }
 
-async function memberFor(openid, tripId, requiredRole) {
-  const result = await db.collection(C.members).where({ tripId, userId: openid, status: 'active' }).limit(1).get()
+async function memberFor(openid, tripId, requiredRole, allowInactive = false) {
+  const where = { tripId, userId: openid }
+  if (!allowInactive) where.status = 'active'
+  const result = await db.collection(C.members).where(where).limit(1).get()
   const member = result.data[0]
-  assert(member, 'FORBIDDEN', '你不是该行程的活跃成员')
+  assert(member, 'FORBIDDEN', allowInactive ? '你不是该行程成员' : '你不是该行程的活跃成员')
   if (requiredRole) assert(member.role === requiredRole, 'FORBIDDEN', '只有行程创建者可执行此操作')
   return member
 }
@@ -96,15 +98,14 @@ async function ledger(tripId) {
 }
 
 async function dashboard(openid, trip) {
-  await memberFor(openid, trip._id)
+  const current = await memberFor(openid, trip._id, null, true)
   const data = await ledger(trip._id)
-  const current = data.members.find((member) => member.userId === openid)
   const mine = data.summary.find((item) => current && item.memberId === current._id)
   return {
     ...publicDoc(trip),
     members: data.members.map(publicDoc), expenses: data.expenses.map(publicDoc).sort((a, b) => b.spentAt.localeCompare(a.spentAt)), summary: data.summary,
-    totalAmountFen: data.expenses.reduce((sum, expense) => sum + expense.amountFen, 0), currentMemberId: current && current._id, currentMemberRole: current && current.role,
-    myPaidAmountFen: mine ? mine.paidAmount : 0, myNetAmountFen: mine ? mine.netAmount : 0,
+    totalAmountFen: data.expenses.reduce((sum, expense) => sum + expense.amountFen, 0), currentMemberId: current && current._id, currentMemberRole: current && current.role, currentMemberStatus: current && current.status,
+    myPaidAmountFen: mine ? mine.paidAmount : 0, myOwedAmountFen: mine ? mine.owedAmount : 0, myNetAmountFen: mine ? mine.netAmount : 0,
   }
 }
 
@@ -115,7 +116,7 @@ async function bootstrap(openid) {
 }
 
 async function listTrips(openid) {
-  const memberships = await allWhere(C.members, { userId: openid, status: 'active' })
+  const memberships = await allWhere(C.members, { userId: openid })
   if (!memberships.length) return []
   const tripIds = [...new Set(memberships.map((item) => item.tripId))]
   const trips = []
@@ -142,6 +143,8 @@ async function createTrip(openid, input) {
 
 async function updateTrip(openid, input) {
   await memberFor(openid, input.tripId, 'owner')
+  const existingTrip = (await db.collection(C.trips).doc(input.tripId).get()).data
+  assert(existingTrip && existingTrip.status !== 'archived', 'FORBIDDEN', '已归档行程为只读')
   const name = String(input.name || '').trim()
   assert(name && name.length <= 30, 'VALIDATION_ERROR', '请填写 1 至 30 字的行程名称')
   assert(!input.startDate || !input.endDate || input.endDate >= input.startDate, 'VALIDATION_ERROR', '结束日期不能早于开始日期')
@@ -154,6 +157,7 @@ async function updateTrip(openid, input) {
 async function archiveTrip(openid, tripId) {
   await memberFor(openid, tripId, 'owner')
   const trip = (await db.collection(C.trips).doc(tripId).get()).data
+  assert(trip.status !== 'archived', 'VALIDATION_ERROR', '行程已归档')
   assert(trip.status !== 'settling', 'SETTLEMENT_LOCKED', '结算进行中，不能归档')
   const updatedAt = iso()
   await db.collection(C.trips).doc(tripId).update({ data: { statusBeforeArchive: trip.status, status: 'archived', updatedAt } })
@@ -174,6 +178,8 @@ async function restoreTrip(openid, tripId) {
 
 async function createOfflineMember(openid, input) {
   await memberFor(openid, input.tripId, 'owner')
+  const trip = (await db.collection(C.trips).doc(input.tripId).get()).data
+  assert(trip && trip.status !== 'archived', 'FORBIDDEN', '已归档行程为只读')
   const name = String(input.displayName || '').trim()
   assert(name && name.length <= 30, 'VALIDATION_ERROR', '成员名称需为 1 至 30 字')
   const active = await allWhere(C.members, { tripId: input.tripId, status: 'active' })
@@ -188,6 +194,8 @@ async function updateOfflineMember(openid, input) {
   const target = (await db.collection(C.members).doc(input.memberId).get()).data
   assert(target && target.userId === null, 'NOT_FOUND', '离线成员不存在')
   await memberFor(openid, target.tripId, 'owner')
+  const trip = (await db.collection(C.trips).doc(target.tripId).get()).data
+  assert(trip && trip.status !== 'archived', 'FORBIDDEN', '已归档行程为只读')
   const name = String(input.displayName || '').trim()
   assert(name && name.length <= 30, 'VALIDATION_ERROR', '成员名称需为 1 至 30 字')
   await db.collection(C.members).doc(target._id).update({ data: { displayName: name } })
@@ -199,9 +207,62 @@ async function deactivateMember(openid, input) {
   const target = (await db.collection(C.members).doc(input.memberId).get()).data
   assert(target && target.role !== 'owner', 'NOT_FOUND', '成员不存在或不可停用')
   await memberFor(openid, target.tripId, 'owner')
+  const trip = (await db.collection(C.trips).doc(target.tripId).get()).data
+  assert(trip && trip.status !== 'archived', 'FORBIDDEN', '已归档行程为只读')
   await db.collection(C.members).doc(target._id).update({ data: { status: 'inactive', deactivatedAt: iso() } })
   await db.collection(C.audits).add({ data: { tripId: target.tripId, entityType: 'member', entityId: target._id, action: 'member_deactivated', actorUserId: openid, summary: `停用成员 ${target.displayName}`, createdAt: iso() } })
   return { ...publicDoc(target), status: 'inactive' }
+}
+
+async function removeMember(openid, input) {
+  const target = (await db.collection(C.members).doc(input.memberId).get()).data
+  assert(target && target.role !== 'owner', 'NOT_FOUND', '成员不存在或不可移除')
+  await memberFor(openid, target.tripId, 'owner')
+  const trip = (await db.collection(C.trips).doc(target.tripId).get()).data
+  assert(trip && trip.status !== 'archived', 'FORBIDDEN', '已归档行程为只读')
+  const [paid, shared] = await Promise.all([
+    db.collection(C.expenses).where({ tripId: target.tripId, payerMemberId: target._id, deletedAt: command.eq(null) }).limit(1).get(),
+    db.collection(C.expenseShares).where({ tripId: target.tripId, memberId: target._id, deletedAt: command.eq(null) }).limit(1).get(),
+  ])
+  assert(!paid.data.length && !shared.data.length, 'MEMBER_HAS_EXPENSES', '该成员已有账单，只能停用')
+  const removedAt = iso()
+  const transaction = await db.startTransaction()
+  try {
+    await transaction.collection(C.members).doc(target._id).remove()
+    await transaction.collection(C.audits).add({ data: { tripId: target.tripId, entityType: 'member', entityId: target._id, action: 'member_removed', actorUserId: openid, summary: `移除成员 ${target.displayName}`, createdAt: removedAt } })
+    await transaction.commit()
+    return { removed: true }
+  } catch (error) { await transaction.rollback(); throw error }
+}
+
+async function transferOwner(openid, input) {
+  const current = await memberFor(openid, input.tripId, 'owner')
+  const trip = (await db.collection(C.trips).doc(input.tripId).get()).data
+  assert(trip && trip.status !== 'archived', 'FORBIDDEN', '已归档行程为只读')
+  const target = (await db.collection(C.members).doc(input.memberId).get()).data
+  assert(target && target.tripId === input.tripId && target.status === 'active' && target.userId && target.role !== 'owner', 'VALIDATION_ERROR', '只能转让给活跃微信成员')
+  const transaction = await db.startTransaction()
+  try {
+    const latestCurrent = (await transaction.collection(C.members).doc(current._id).get()).data
+    const latestTarget = (await transaction.collection(C.members).doc(target._id).get()).data
+    assert(latestCurrent.role === 'owner' && latestTarget.status === 'active' && latestTarget.userId, 'REVISION_CONFLICT', '成员状态已变化，请刷新后重试')
+    const changedAt = iso()
+    await transaction.collection(C.members).doc(current._id).update({ data: { role: 'member' } })
+    await transaction.collection(C.members).doc(target._id).update({ data: { role: 'owner' } })
+    await transaction.collection(C.trips).doc(input.tripId).update({ data: { ownerUserId: latestTarget.userId, updatedAt: changedAt } })
+    await transaction.collection(C.audits).add({ data: { tripId: input.tripId, entityType: 'trip', entityId: input.tripId, action: 'owner_transferred', actorUserId: openid, summary: `创建者转让给 ${latestTarget.displayName}`, createdAt: changedAt } })
+    await transaction.commit()
+    return { ownerMemberId: latestTarget._id }
+  } catch (error) { await transaction.rollback(); throw error }
+}
+
+async function assertLedgerWriteAllowed(transaction, trip) {
+  assert(['active', 'needs_settlement', 'settled', 'settling'].includes(trip.status), 'SETTLEMENT_LOCKED', '当前结算状态不允许改账')
+  if (trip.status !== 'settling') return
+  assert(trip.activeSettlementId, 'DATA_INTEGRITY', '进行中的结算不存在')
+  const changedTransfers = await transaction.collection(C.transfers).where({ settlementId: trip.activeSettlementId, status: command.neq('pending') }).limit(1).get()
+  assert(!changedTransfers.data.length, 'SETTLEMENT_LOCKED', '已有转账被标记支付，暂不能改账')
+  await transaction.collection(C.settlements).doc(trip.activeSettlementId).update({ data: { status: 'invalidated', invalidatedAt: iso() } })
 }
 
 async function createExpense(openid, input) {
@@ -212,7 +273,9 @@ async function createExpense(openid, input) {
   const duplicate = await db.collection(C.expenses).where({ tripId: input.tripId, createdByUserId: openid, clientRequestId: input.clientRequestId }).limit(1).get()
   if (duplicate.data.length) return publicDoc(duplicate.data[0])
   const trip = (await db.collection(C.trips).doc(input.tripId).get()).data
-  assert(['active', 'needs_settlement', 'settled'].includes(trip.status), 'SETTLEMENT_LOCKED', '当前结算状态不允许改账')
+  assert(['active', 'needs_settlement', 'settled', 'settling'].includes(trip.status), 'SETTLEMENT_LOCKED', '当前结算状态不允许改账')
+  const expenseCount = await db.collection(C.expenses).where({ tripId: input.tripId, deletedAt: command.eq(null) }).count()
+  assert(expenseCount.total < 5000, 'VALIDATION_ERROR', '单个行程最多 5,000 笔有效账单')
   const members = await allWhere(C.members, { tripId: input.tripId, status: 'active' })
   const memberIds = new Set(members.map((member) => member._id))
   assert(memberIds.has(input.payerMemberId), 'VALIDATION_ERROR', '付款人不合法')
@@ -222,7 +285,7 @@ async function createExpense(openid, input) {
   const transaction = await db.startTransaction()
   try {
     const latestTrip = (await transaction.collection(C.trips).doc(input.tripId).get()).data
-    assert(['active', 'needs_settlement', 'settled'].includes(latestTrip.status), 'SETTLEMENT_LOCKED', '当前结算状态不允许改账')
+    await assertLedgerWriteAllowed(transaction, latestTrip)
     const createdAt = iso()
     const expenseResult = await transaction.collection(C.expenses).add({ data: { tripId: input.tripId, payerMemberId: input.payerMemberId, amountFen: input.amountFen, category: input.category || 'other', note: String(input.note || '').slice(0, 100), spentAt: input.spentAt || createdAt, splitMode: input.splitMode || 'equal', revision: 1, clientRequestId: input.clientRequestId, createdByUserId: openid, updatedByUserId: openid, deletedAt: null, createdAt, updatedAt: createdAt } })
     for (const share of shares) await transaction.collection(C.expenseShares).add({ data: { ...share, tripId: input.tripId, expenseId: expenseResult._id, deletedAt: null } })
@@ -237,17 +300,20 @@ async function getExpense(openid, expenseId) {
   const expenseResult = await db.collection(C.expenses).doc(expenseId).get()
   const expense = expenseResult.data
   assert(expense && !expense.deletedAt, 'NOT_FOUND', '账单不存在')
-  const actor = await memberFor(openid, expense.tripId)
-  const [shares, members] = await Promise.all([
+  const actor = await memberFor(openid, expense.tripId, null, true)
+  const [shares, members, audits] = await Promise.all([
     allWhere(C.expenseShares, { expenseId, deletedAt: command.eq(null) }),
     allWhere(C.members, { tripId: expense.tripId }),
+    db.collection(C.audits).where({ entityType: 'expense', entityId: expenseId }).orderBy('createdAt', 'desc').limit(20).get(),
   ])
+  const actorNames = Object.fromEntries(members.filter((member) => member.userId).map((member) => [member.userId, member.displayName]))
   return {
     ...publicDoc(expense),
     members: members.map(publicDoc),
     shares: Object.fromEntries(shares.map((share) => [share.memberId, share.amountFen])),
     shareUnits: Object.fromEntries(shares.map((share) => [share.memberId, share.shareUnits])),
-    canEdit: actor.role === 'owner' || expense.createdByUserId === openid,
+    auditEvents: audits.data.map((audit) => ({ ...publicDoc(audit), actorName: actorNames[audit.actorUserId] || '行程成员' })),
+    canEdit: actor.status === 'active' && (actor.role === 'owner' || expense.createdByUserId === openid),
   }
 }
 
@@ -261,7 +327,7 @@ async function updateExpense(openid, input) {
   assert(Array.isArray(input.participantMemberIds) && input.participantMemberIds.length > 0, 'VALIDATION_ERROR', '至少选择一名参与人')
   assert(['equal', 'units'].includes(input.splitMode), 'VALIDATION_ERROR', '分摊方式不合法')
   const trip = (await db.collection(C.trips).doc(expense.tripId).get()).data
-  assert(['active', 'needs_settlement'].includes(trip.status), 'SETTLEMENT_LOCKED', '当前结算状态不允许改账')
+  assert(['active', 'needs_settlement', 'settling'].includes(trip.status), 'SETTLEMENT_LOCKED', '当前结算状态不允许改账')
   const members = await allWhere(C.members, { tripId: expense.tripId, status: 'active' })
   const selected = members.filter((member) => input.participantMemberIds.includes(member._id))
   assert(selected.length === input.participantMemberIds.length, 'VALIDATION_ERROR', '参与人不合法')
@@ -272,6 +338,8 @@ async function updateExpense(openid, input) {
   try {
     const latest = (await transaction.collection(C.expenses).doc(expense._id).get()).data
     assert(latest.revision === input.expectedRevision && !latest.deletedAt, 'REVISION_CONFLICT', '账单已被修改，请刷新后重试')
+    const latestTrip = (await transaction.collection(C.trips).doc(expense.tripId).get()).data
+    await assertLedgerWriteAllowed(transaction, latestTrip)
     const updatedAt = iso()
     await transaction.collection(C.expenses).doc(expense._id).update({ data: { payerMemberId: input.payerMemberId, amountFen: input.amountFen, category: input.category || 'other', note: String(input.note || '').slice(0, 100), spentAt: input.spentAt, splitMode: input.splitMode || 'equal', revision: command.inc(1), updatedByUserId: openid, updatedAt } })
     for (const share of oldShares) await transaction.collection(C.expenseShares).doc(share._id).update({ data: { deletedAt: updatedAt } })
@@ -291,11 +359,13 @@ async function deleteExpense(openid, input) {
   assert(actor.role === 'owner' || expense.createdByUserId === openid, 'FORBIDDEN', '你无权删除这笔账单')
   assert(expense.revision === input.expectedRevision, 'REVISION_CONFLICT', '账单已被修改，请刷新后重试')
   const trip = (await db.collection(C.trips).doc(expense.tripId).get()).data
-  assert(['active', 'needs_settlement'].includes(trip.status), 'SETTLEMENT_LOCKED', '当前结算状态不允许删除账单')
+  assert(['active', 'needs_settlement', 'settling'].includes(trip.status), 'SETTLEMENT_LOCKED', '当前结算状态不允许删除账单')
   const transaction = await db.startTransaction()
   try {
     const latest = (await transaction.collection(C.expenses).doc(expense._id).get()).data
     assert(latest.revision === input.expectedRevision && !latest.deletedAt, 'REVISION_CONFLICT', '账单已被修改，请刷新后重试')
+    const latestTrip = (await transaction.collection(C.trips).doc(expense.tripId).get()).data
+    await assertLedgerWriteAllowed(transaction, latestTrip)
     const deletedAt = iso()
     await transaction.collection(C.expenses).doc(expense._id).update({ data: { deletedAt, revision: command.inc(1), updatedByUserId: openid, updatedAt: deletedAt } })
     await transaction.collection(C.trips).doc(expense.tripId).update({ data: { ledgerRevision: command.inc(1), status: 'needs_settlement', activeSettlementId: null, updatedAt: deletedAt } })
@@ -306,7 +376,7 @@ async function deleteExpense(openid, input) {
 }
 
 async function settlementPreview(openid, tripId) {
-  const current = await memberFor(openid, tripId)
+  const current = await memberFor(openid, tripId, null, true)
   const trip = (await db.collection(C.trips).doc(tripId).get()).data
   const data = await ledger(tripId)
   const names = Object.fromEntries(data.members.map((member) => [member._id, member.displayName]))
@@ -314,10 +384,11 @@ async function settlementPreview(openid, tripId) {
 }
 
 async function settlementGet(openid, tripId) {
-  const current = await memberFor(openid, tripId)
+  const current = await memberFor(openid, tripId, null, true)
   const trip = (await db.collection(C.trips).doc(tripId).get()).data
   if (!trip.latestSettlementId) return settlementPreview(openid, tripId)
   const settlement = (await db.collection(C.settlements).doc(trip.latestSettlementId).get()).data
+  if (!settlement || settlement.status === 'invalidated' || settlement.ledgerRevision !== trip.ledgerRevision) return settlementPreview(openid, tripId)
   const [transfers, members] = await Promise.all([allWhere(C.transfers, { settlementId: settlement._id }), allWhere(C.members, { tripId })])
   const names = Object.fromEntries(members.map((member) => [member._id, member.displayName]))
   return { ...publicDoc(settlement), currentMemberId: current._id, currentMemberRole: current.role, transfers: transfers.map((item) => ({ ...publicDoc(item), fromName: names[item.fromMemberId], toName: names[item.toMemberId] })) }
@@ -328,6 +399,7 @@ async function settlementStart(openid, tripId) {
   const trip = (await db.collection(C.trips).doc(tripId).get()).data
   const existing = await db.collection(C.settlements).where({ tripId, ledgerRevision: trip.ledgerRevision, status: 'active' }).limit(1).get()
   if (existing.data.length) return settlementGet(openid, tripId)
+  assert(['active', 'needs_settlement'].includes(trip.status), 'SETTLEMENT_LOCKED', '当前行程状态不允许发起结算')
   const preview = await settlementPreview(openid, tripId)
   const transaction = await db.startTransaction()
   try {
@@ -350,12 +422,17 @@ async function transferUpdate(openid, input) {
   const member = await memberFor(openid, settlement.tripId)
   const transfer = (await db.collection(C.transfers).doc(input.transferId).get()).data
   assert(transfer && transfer.settlementId === settlement._id, 'NOT_FOUND', '转账项不存在')
+  const trip = (await db.collection(C.trips).doc(settlement.tripId).get()).data
+  assert(trip.activeSettlementId === settlement._id, 'SETTLEMENT_LOCKED', '该结算方案已失效')
   if (input.status === 'paid') assert(transfer.status === 'pending' && member._id === transfer.fromMemberId, 'FORBIDDEN', '只有付款方可标记已支付')
   else if (input.status === 'received') assert(transfer.status === 'paid' && member._id === transfer.toMemberId, 'FORBIDDEN', '只有收款方可确认已收款')
   else if (input.status === 'pending') assert(transfer.status === 'paid' && (member._id === transfer.fromMemberId || member.role === 'owner'), 'FORBIDDEN', '只有付款方或创建者可撤销已支付')
   else assert(false, 'VALIDATION_ERROR', '状态转换不合法')
   const transaction = await db.startTransaction()
   try {
+    const latestSettlement = (await transaction.collection(C.settlements).doc(settlement._id).get()).data
+    const latestTrip = (await transaction.collection(C.trips).doc(settlement.tripId).get()).data
+    assert(latestSettlement.status === 'active' && latestTrip.activeSettlementId === settlement._id, 'SETTLEMENT_LOCKED', '该结算方案已失效')
     const latest = (await transaction.collection(C.transfers).doc(input.transferId).get()).data
     assert(latest.status === transfer.status, 'REVISION_CONFLICT', '转账状态已变化')
     const changedAt = iso()
@@ -381,9 +458,28 @@ async function transferUpdate(openid, input) {
 
 async function inviteCreate(openid, tripId) {
   await memberFor(openid, tripId, 'owner')
+  const trip = (await db.collection(C.trips).doc(tripId).get()).data
+  assert(trip && trip.status !== 'archived', 'FORBIDDEN', '已归档行程为只读')
   const inviteId = randomId()
   await db.collection(C.invites).add({ data: { inviteId, tripId, status: 'active', useCount: 0, maxUses: 20, expiresAt: new Date(Date.now() + 7 * 86400000).toISOString(), createdByUserId: openid, createdAt: iso() } })
   return { inviteId, path: `/pages/join/join?inviteId=${inviteId}` }
+}
+
+async function inviteGetActive(openid, tripId) {
+  await memberFor(openid, tripId, 'owner')
+  const result = await db.collection(C.invites).where({ tripId, status: 'active' }).orderBy('createdAt', 'desc').limit(1).get()
+  const invite = result.data[0]
+  if (!invite || invite.expiresAt <= iso() || invite.useCount >= invite.maxUses) return null
+  return { inviteId: invite.inviteId, path: `/pages/join/join?inviteId=${invite.inviteId}`, expiresAt: invite.expiresAt, useCount: invite.useCount }
+}
+
+async function inviteRevoke(openid, inviteId) {
+  const result = await db.collection(C.invites).where({ inviteId, status: 'active' }).limit(1).get()
+  const invite = result.data[0]
+  assert(invite, 'INVITE_INVALID', '邀请已失效')
+  await memberFor(openid, invite.tripId, 'owner')
+  await db.collection(C.invites).doc(invite._id).update({ data: { status: 'revoked', revokedAt: iso() } })
+  return { revoked: true }
 }
 
 async function invitePreview(openid, inviteId) {
@@ -412,6 +508,8 @@ async function inviteJoin(openid, input) {
   try {
     const latestInvite = (await transaction.collection(C.invites).doc(invite._id).get()).data
     assert(latestInvite && latestInvite.status === 'active' && latestInvite.expiresAt > iso() && latestInvite.useCount < latestInvite.maxUses, 'INVITE_INVALID', '邀请已失效')
+    const latestTrip = (await transaction.collection(C.trips).doc(invite.tripId).get()).data
+    assert(latestTrip && latestTrip.status !== 'archived', 'INVITE_INVALID', '该行程暂不可加入')
     const latestExisting = await transaction.collection(C.members).where({ tripId: invite.tripId, userId: openid }).limit(1).get()
     if (latestExisting.data.length) {
       await transaction.rollback()
@@ -437,6 +535,8 @@ const actions = {
   'member.addOffline': createOfflineMember,
   'member.updateOffline': updateOfflineMember,
   'member.deactivate': deactivateMember,
+  'member.remove': removeMember,
+  'member.transferOwner': transferOwner,
   'expense.create': createExpense,
   'expense.get': (openid, payload) => getExpense(openid, payload.expenseId),
   'expense.update': updateExpense,
@@ -446,6 +546,8 @@ const actions = {
   'settlement.start': (openid, payload) => settlementStart(openid, payload.tripId),
   'settlement.transfer.update': transferUpdate,
   'invite.create': (openid, payload) => inviteCreate(openid, payload.tripId),
+  'invite.getActive': (openid, payload) => inviteGetActive(openid, payload.tripId),
+  'invite.revoke': (openid, payload) => inviteRevoke(openid, payload.inviteId),
   'invite.preview': (openid, payload) => invitePreview(openid, payload.inviteId),
   'invite.join': inviteJoin,
 }

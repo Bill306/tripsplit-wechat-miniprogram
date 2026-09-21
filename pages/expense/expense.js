@@ -17,6 +17,7 @@ Page({
         categoryLabel: (CATEGORY[expense.category] || CATEGORY.other).label,
         spentAtText: expense.spentAt.slice(0, 10),
         sharesView: Object.entries(expense.shares).map(([memberId, amountFen]) => ({ memberId, name: names[memberId], amountText: formatFen(amountFen) })),
+        auditEvents: (expense.auditEvents || []).map((event) => ({ ...event, createdAtText: String(event.createdAt).replace('T', ' ').slice(0, 16) })),
       } })
     } catch (error) { wx.showToast({ title: error.message, icon: 'none' }) }
   },

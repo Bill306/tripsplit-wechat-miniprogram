@@ -5,3 +5,8 @@
 .detail-card text { color: #6e7c75; }
 .share-list { padding: 0 26rpx; background: #fffdf8; border: 2rpx solid #ddd7c9; border-radius: 24rpx; }
 .revision-note { margin-top: 28rpx; color: #7d8983; font-size: 23rpx; text-align: center; }
+.audit-list { overflow: hidden; background: #fffdf8; border: 2rpx solid #ddd7c9; border-radius: 20rpx; }
+.audit-row { display: flex; align-items: center; justify-content: space-between; gap: 16rpx; padding: 18rpx 20rpx; border-bottom: 2rpx solid #eee9df; }
+.audit-row:last-child { border-bottom: 0; }
+.audit-row view { display: flex; flex-direction: column; gap: 5rpx; }
+.audit-row text { color: #7d8983; font-size: 21rpx; }

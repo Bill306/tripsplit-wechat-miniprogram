@@ -8,7 +8,10 @@ const STORAGE_KEY = 'tripsplit.demo.v1'
 const CURRENT_USER_ID = 'demo-user'
 const now = () => new Date().toISOString()
 const id = (prefix) => `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
-const load = () => wx.getStorageSync(STORAGE_KEY) || { trips: [], members: [], expenses: [], settlements: [] }
+const load = () => {
+  const state = wx.getStorageSync(STORAGE_KEY) || {}
+  return { trips: [], members: [], expenses: [], settlements: [], audits: [], ...state, audits: state.audits || [] }
+}
 const save = (state) => wx.setStorageSync(STORAGE_KEY, state)
 const clone = (value) => JSON.parse(JSON.stringify(value))
 const allTripMembers = (state, tripId) => state.members.filter((member) => member.tripId === tripId)
@@ -30,9 +33,25 @@ function buildDashboard(state, trip) {
     totalAmountFen: expenses.reduce((sum, expense) => sum + expense.amountFen, 0),
     currentMemberId: currentMember && currentMember.id,
     myPaidAmountFen: mine ? mine.paidAmount : 0,
+    myOwedAmountFen: mine ? mine.owedAmount : 0,
     myNetAmountFen: mine ? mine.netAmount : 0,
     currentMemberRole: currentMember && currentMember.role,
+    currentMemberStatus: currentMember && currentMember.status,
   }
+}
+
+function prepareLedgerWrite(state, trip) {
+  if (!['active', 'needs_settlement', 'settled', 'settling'].includes(trip.status)) throw new Error('当前结算状态不允许改账')
+  if (trip.status !== 'settling') return
+  const settlement = state.settlements.find((item) => item.id === trip.activeSettlementId && item.status === 'active')
+  if (!settlement) throw new Error('进行中的结算不存在')
+  if (settlement.transfers.some((item) => item.status !== 'pending')) throw new Error('已有转账被标记支付，暂不能改账')
+  settlement.status = 'invalidated'
+  settlement.invalidatedAt = now()
+}
+
+function addAudit(state, tripId, entityType, entityId, action, summary) {
+  state.audits.push({ id: id('audit'), tripId, entityType, entityId, action, actorUserId: CURRENT_USER_ID, actorName: 'Bill', summary, createdAt: now() })
 }
 
 async function bootstrap() {
@@ -70,7 +89,8 @@ async function updateTrip(input) {
   const state = load()
   const trip = state.trips.find((item) => item.id === input.tripId)
   if (!trip) throw new Error('行程不存在')
-  if (!['active', 'needs_settlement', 'settled'].includes(trip.status)) throw new Error('当前结算状态不允许改账')
+  prepareLedgerWrite(state, trip)
+  if (tripExpenses(state, input.tripId).length >= 5000) throw new Error('单个行程最多 5,000 笔有效账单')
   const name = String(input.name || '').trim()
   if (!name || name.length > 30) throw new Error('请填写 1 至 30 字的行程名称')
   Object.assign(trip, { name, destination: String(input.destination || '').trim(), startDate: input.startDate || '', endDate: input.endDate || '', updatedAt: now() })
@@ -107,19 +127,22 @@ async function createExpense(input) {
   if (duplicate) return clone(duplicate)
   const trip = state.trips.find((item) => item.id === input.tripId)
   if (!trip) throw new Error('行程不存在')
-  if (!['active', 'needs_settlement', 'settled'].includes(trip.status)) throw new Error('当前结算状态不允许改账')
   const members = tripMembers(state, input.tripId)
   const selected = members.filter((member) => input.participantMemberIds.includes(member.id))
   if (selected.length !== input.participantMemberIds.length) throw new Error('参与人不合法')
   const shares = input.splitMode === 'units'
     ? splitByUnits(input.amountFen, selected.map((member) => ({ ...member, units: input.units[member.id] })))
     : splitEqual(input.amountFen, selected)
+  prepareLedgerWrite(state, trip)
+  if (tripExpenses(state, input.tripId).length >= 5000) throw new Error('单个行程最多 5,000 笔有效账单')
   const createdAt = now()
   const expense = { id: id('expense'), tripId: input.tripId, payerMemberId: input.payerMemberId, amountFen: input.amountFen, category: input.category, note: input.note || '', spentAt: input.spentAt || createdAt, splitMode: input.splitMode, shares, shareUnits: input.splitMode === 'units' ? { ...input.units } : {}, revision: 1, clientRequestId: input.clientRequestId, createdByUserId: CURRENT_USER_ID, createdAt, updatedAt: createdAt }
   state.expenses.push(expense)
   trip.ledgerRevision += 1
   trip.status = 'needs_settlement'
+  trip.activeSettlementId = null
   trip.updatedAt = createdAt
+  addAudit(state, trip.id, 'expense', expense.id, 'created', `新增账单 ${input.amountFen} 分`)
   save(state)
   return clone(expense)
 }
@@ -129,7 +152,9 @@ async function getExpense(expenseId) {
   const expense = state.expenses.find((item) => item.id === expenseId && !item.deletedAt)
   if (!expense) throw new Error('账单不存在')
   const members = allTripMembers(state, expense.tripId)
-  return { ...clone(expense), members: clone(members), canEdit: true }
+  const auditEvents = state.audits.filter((audit) => audit.entityType === 'expense' && audit.entityId === expense.id).sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+  const current = getCurrentMember(state, expense.tripId)
+  return { ...clone(expense), members: clone(members), auditEvents: clone(auditEvents), canEdit: current && current.status === 'active' && (current.role === 'owner' || expense.createdByUserId === CURRENT_USER_ID) }
 }
 
 async function updateExpense(input) {
@@ -142,7 +167,8 @@ async function updateExpense(input) {
     throw error
   }
   const trip = state.trips.find((item) => item.id === expense.tripId)
-  if (!['active', 'needs_settlement'].includes(trip.status)) throw new Error('当前结算状态不允许改账')
+  if (trip.status === 'settled') throw new Error('已结算账单不可修改，请新增调整账单')
+  prepareLedgerWrite(state, trip)
   const members = tripMembers(state, expense.tripId)
   const selected = members.filter((member) => input.participantMemberIds.includes(member.id))
   const shares = input.splitMode === 'units'
@@ -153,6 +179,7 @@ async function updateExpense(input) {
   trip.status = 'needs_settlement'
   trip.activeSettlementId = null
   trip.updatedAt = now()
+  addAudit(state, trip.id, 'expense', expense.id, 'updated', `修改账单为 ${input.amountFen} 分`)
   save(state)
   return clone(expense)
 }
@@ -163,13 +190,15 @@ async function deleteExpense(input) {
   if (!expense) throw new Error('账单不存在')
   if (expense.revision !== input.expectedRevision) throw new Error('账单已被修改，请刷新后重试')
   const trip = state.trips.find((item) => item.id === expense.tripId)
-  if (!['active', 'needs_settlement'].includes(trip.status)) throw new Error('当前结算状态不允许删除账单')
+  if (trip.status === 'settled') throw new Error('已结算账单不可删除，请新增调整账单')
+  prepareLedgerWrite(state, trip)
   expense.deletedAt = now()
   expense.revision += 1
   trip.ledgerRevision += 1
   trip.status = 'needs_settlement'
   trip.activeSettlementId = null
   trip.updatedAt = now()
+  addAudit(state, trip.id, 'expense', expense.id, 'deleted', `删除账单 ${expense.amountFen} 分`)
   save(state)
   return { deleted: true }
 }
@@ -207,6 +236,33 @@ async function deactivateMember(memberId) {
   return clone(member)
 }
 
+async function removeMember(memberId) {
+  const state = load()
+  const memberIndex = state.members.findIndex((item) => item.id === memberId && item.role !== 'owner')
+  if (memberIndex < 0) throw new Error('成员不存在或不可移除')
+  const member = state.members[memberIndex]
+  const hasExpense = tripExpenses(state, member.tripId).some((expense) => expense.payerMemberId === member.id || Object.prototype.hasOwnProperty.call(expense.shares, member.id))
+  if (hasExpense) throw new Error('该成员已有账单，只能停用')
+  state.members.splice(memberIndex, 1)
+  addAudit(state, member.tripId, 'member', member.id, 'member_removed', `移除成员 ${member.displayName}`)
+  save(state)
+  return { removed: true }
+}
+
+async function transferOwner(input) {
+  const state = load()
+  const current = getCurrentMember(state, input.tripId)
+  const target = state.members.find((item) => item.id === input.memberId && item.tripId === input.tripId)
+  if (!current || current.role !== 'owner' || !target || !target.userId || target.status !== 'active') throw new Error('只能转让给活跃微信成员')
+  current.role = 'member'
+  target.role = 'owner'
+  const trip = state.trips.find((item) => item.id === input.tripId)
+  trip.ownerUserId = target.userId
+  addAudit(state, input.tripId, 'trip', input.tripId, 'owner_transferred', `创建者转让给 ${target.displayName}`)
+  save(state)
+  return { ownerMemberId: target.id }
+}
+
 async function previewSettlement(tripId) {
   const state = load()
   const trip = state.trips.find((item) => item.id === tripId)
@@ -238,7 +294,9 @@ async function getSettlement(tripId) {
   const state = load()
   const trip = state.trips.find((item) => item.id === tripId)
   if (!trip || !trip.latestSettlementId) return previewSettlement(tripId)
-  const settlement = clone(state.settlements.find((item) => item.id === trip.latestSettlementId))
+  const stored = state.settlements.find((item) => item.id === trip.latestSettlementId)
+  if (!stored || stored.status === 'invalidated' || stored.ledgerRevision !== trip.ledgerRevision) return previewSettlement(tripId)
+  const settlement = clone(stored)
   const current = getCurrentMember(state, tripId)
   return { ...settlement, currentMemberId: current && current.id, currentMemberRole: current && current.role }
 }
@@ -263,7 +321,9 @@ async function updateTransferStatus(input) {
 }
 
 async function createInvite() { throw new Error('多人邀请需先配置微信云开发') }
+async function getActiveInvite() { return null }
+async function revokeInvite() { throw new Error('多人邀请需先配置微信云开发') }
 async function previewInvite() { throw new Error('多人邀请需先配置微信云开发') }
 async function joinTrip() { throw new Error('多人邀请需先配置微信云开发') }
 
-module.exports = { archiveTrip, bootstrap, createExpense, createInvite, createOfflineMember, createTrip, deactivateMember, deleteExpense, getExpense, getSettlement, getTrip, joinTrip, listTrips, previewInvite, previewSettlement, restoreTrip, startSettlement, updateExpense, updateOfflineMember, updateTransferStatus, updateTrip }
+module.exports = { archiveTrip, bootstrap, createExpense, createInvite, createOfflineMember, createTrip, deactivateMember, deleteExpense, getActiveInvite, getExpense, getSettlement, getTrip, joinTrip, listTrips, previewInvite, previewSettlement, removeMember, restoreTrip, revokeInvite, startSettlement, transferOwner, updateExpense, updateOfflineMember, updateTransferStatus, updateTrip }

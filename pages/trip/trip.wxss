@@ -2,11 +2,13 @@
 .trip-heading .status-chip { margin-top: 12rpx; }
 .invite-row { display: flex; justify-content: flex-end; gap: 12rpx; margin-top: 14rpx; }
 .invite-button { min-height: 58rpx; margin: 0; padding: 0 22rpx; background: transparent; border: 2rpx solid #1f6b57; border-radius: 30rpx; color: #1f6b57; font-size: 23rpx; line-height: 56rpx; }
+.invite-button.danger-link { border-color: #b75a48; color: #b75a48; }
 .total-card { background: #17362e; border-color: #17362e; color: #fffdf8; }
 .total-card .muted { color: #b8c8c1; }
 .hero-amount { margin-top: 12rpx; font-size: 64rpx; font-weight: 900; letter-spacing: -2rpx; }
 .summary-row { display: flex; justify-content: space-between; margin-top: 32rpx; padding-top: 26rpx; border-top: 2rpx dashed rgba(255,255,255,.24); }
-.summary-row view { display: flex; flex-direction: column; gap: 8rpx; }
+.summary-row view { display: flex; flex: 1; flex-direction: column; gap: 8rpx; }
+.summary-row view:nth-child(2) { text-align: center; }
 .summary-row view:last-child { text-align: right; }
 .summary-row text { color: #b8c8c1; font-size: 23rpx; }
 .summary-row strong { font-size: 30rpx; }

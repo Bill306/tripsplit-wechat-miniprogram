@@ -70,11 +70,12 @@ domain/settlement.js
 
 - `bootstrap()`
 - `listTrips()` / `getTrip(tripId)` / `createTrip(input)`
-- `createOfflineMember(tripId, input)`
+- `createOfflineMember(tripId, input)` / `removeMember(memberId)` / `transferOwner(input)`
 - `listExpenses(tripId)` / `getExpense(expenseId)`
 - `createExpense(input)` / `updateExpense(input)` / `deleteExpense(input)`
 - `previewSettlement(tripId)` / `startSettlement(tripId)`
 - `updateTransferStatus(input)`
+- `createInvite(tripId)` / `getActiveInvite(tripId)` / `revokeInvite(inviteId)` / `joinTrip(input)`
 
 ## 5. 云函数边界
 
@@ -90,7 +91,7 @@ api(event, wxContext)
   └─ 返回 { ok, data, error }
 ```
 
-服务端 action：`bootstrap`、`trip.create`、`trip.get`、`trip.list`、`member.addOffline`、`invite.create`、`invite.join`、`expense.create`、`expense.update`、`expense.delete`、`settlement.preview`、`settlement.start`、`settlement.transfer.update`。
+服务端 action：`bootstrap`、行程管理、成员管理与创建者转让、邀请预览/撤销/加入、账单增改删、结算预览/发起/转账确认。所有写操作均在 action 内再次校验 `OPENID` 对应成员与角色。
 
 ## 6. 一致性与状态机
 
@@ -113,6 +114,7 @@ needs_settlement          settled
 - 账单写入与 `Trip.ledgerRevision` 递增同事务。
 - 结算写入前再次断言 `ledgerRevision` 未变。
 - 最后一笔收款确认与 Trip/Settlement 完成同事务。
+- 活跃结算仍全部为 `pending` 时，改账会在同一事务中把旧方案标记为 `invalidated`；出现 `paid` 或 `received` 后拒绝改账。
 
 ## 7. 错误模型
 

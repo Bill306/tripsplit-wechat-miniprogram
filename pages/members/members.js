@@ -8,6 +8,7 @@ Page({
     try {
       const trip = await repository.getTrip(this.data.tripId)
       trip.members = trip.members.map((member) => ({ ...member, initial: member.displayName.slice(0, 1) }))
+      trip.canManage = trip.currentMemberRole === 'owner' && trip.currentMemberStatus === 'active'
       this.setData({ trip })
     }
     catch (error) { wx.showToast({ title: error.message, icon: 'none' }) }
@@ -30,6 +31,19 @@ Page({
     const confirmed = await new Promise((resolve) => wx.showModal({ title: '停用该成员？', content: '历史账单会保留，但之后不再默认参与新账单。', success: (result) => resolve(result.confirm) }))
     if (!confirmed) return
     try { await repository.deactivateMember(event.currentTarget.dataset.id); await this.load() }
+    catch (error) { wx.showToast({ title: error.message, icon: 'none' }) }
+  },
+  async remove(event) {
+    const confirmed = await new Promise((resolve) => wx.showModal({ title: '移除该成员？', content: '仅未关联任何账单的成员可以移除。', confirmColor: '#C24B3A', success: (result) => resolve(result.confirm) }))
+    if (!confirmed) return
+    try { await repository.removeMember(event.currentTarget.dataset.id); await this.load() }
+    catch (error) { wx.showToast({ title: error.message, icon: 'none' }) }
+  },
+  async transferOwner(event) {
+    const { id, name } = event.currentTarget.dataset
+    const confirmed = await new Promise((resolve) => wx.showModal({ title: `转让给 ${name}？`, content: '转让后你将变为普通成员。', confirmColor: '#C24B3A', success: (result) => resolve(result.confirm) }))
+    if (!confirmed) return
+    try { await repository.transferOwner({ tripId: this.data.tripId, memberId: id }); wx.showToast({ title: '已转让' }); await this.load() }
     catch (error) { wx.showToast({ title: error.message, icon: 'none' }) }
   },
 })

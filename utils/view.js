@@ -20,6 +20,7 @@ function decorateDashboard(trip) {
     statusLabel: STATUS[trip.status] || trip.status,
     totalAmount: formatFen(trip.totalAmountFen),
     myPaidAmount: formatFen(trip.myPaidAmountFen),
+    myOwedAmount: formatFen(trip.myOwedAmountFen || 0),
     myNetAmount: formatFen(Math.abs(trip.myNetAmountFen)),
     myNetLabel: trip.myNetAmountFen >= 0 ? '我应收' : '我应付',
     myNetClass: trip.myNetAmountFen >= 0 ? 'amount-positive' : 'amount-negative',

@@ -118,3 +118,62 @@ test('updates, archives, and restores a trip without changing its ledger', async
   await repository.restoreTrip(trip.id)
   assert.equal((await repository.getTrip(trip.id)).status, 'active')
 })
+
+test('shows expense audit history after create and edit', async () => {
+  const trip = await seedTrip()
+  const expense = await repository.createExpense({
+    tripId: trip.id, payerMemberId: trip.currentMemberId, amountFen: 300,
+    participantMemberIds: trip.members.map((member) => member.id), splitMode: 'equal', units: {}, category: 'food', note: '午饭', spentAt: '2026-09-21T12:00:00.000Z', clientRequestId: 'audit-request',
+  })
+  await repository.updateExpense({
+    expenseId: expense.id, expectedRevision: 1, payerMemberId: trip.currentMemberId, amountFen: 360,
+    participantMemberIds: trip.members.map((member) => member.id), splitMode: 'equal', units: {}, category: 'food', note: '午饭加饮料', spentAt: '2026-09-21T12:00:00.000Z',
+  })
+  const detail = await repository.getExpense(expense.id)
+  assert.equal(detail.auditEvents.length, 2)
+  assert.deepEqual(new Set(detail.auditEvents.map((event) => event.action)), new Set(['created', 'updated']))
+  assert.equal(detail.canEdit, true)
+})
+
+test('invalidates an unpaid settlement when the ledger changes', async () => {
+  const trip = await seedTrip()
+  await repository.createExpense({
+    tripId: trip.id, payerMemberId: trip.currentMemberId, amountFen: 300,
+    participantMemberIds: trip.members.map((member) => member.id), splitMode: 'equal', units: {}, category: 'stay', note: '住宿', spentAt: '2026-09-21T12:00:00.000Z', clientRequestId: 'invalidate-request',
+  })
+  const settlement = await repository.startSettlement(trip.id)
+  await repository.createExpense({
+    tripId: trip.id, payerMemberId: trip.currentMemberId, amountFen: 90,
+    participantMemberIds: trip.members.map((member) => member.id), splitMode: 'equal', units: {}, category: 'food', note: '加餐', spentAt: '2026-09-22T12:00:00.000Z', clientRequestId: 'adjust-request',
+  })
+  const current = await repository.getSettlement(trip.id)
+  assert.equal(current.status, 'preview')
+  assert.ok(current.ledgerRevision > settlement.ledgerRevision)
+})
+
+test('locks ledger changes after a settlement transfer is marked paid', async () => {
+  const trip = await seedTrip()
+  await repository.createExpense({
+    tripId: trip.id, payerMemberId: trip.currentMemberId, amountFen: 300,
+    participantMemberIds: trip.members.map((member) => member.id), splitMode: 'equal', units: {}, category: 'stay', note: '住宿', spentAt: '2026-09-21T12:00:00.000Z', clientRequestId: 'paid-lock-request',
+  })
+  let settlement = await repository.startSettlement(trip.id)
+  settlement = await repository.updateTransferStatus({ settlementId: settlement.id, transferId: settlement.transfers[0].id, status: 'paid' })
+  await assert.rejects(() => repository.createExpense({
+    tripId: trip.id, payerMemberId: trip.currentMemberId, amountFen: 90,
+    participantMemberIds: trip.members.map((member) => member.id), splitMode: 'equal', units: {}, category: 'food', note: '加餐', spentAt: '2026-09-22T12:00:00.000Z', clientRequestId: 'locked-request',
+  }), /已有转账/)
+})
+
+test('removes a member only before they are linked to expenses', async () => {
+  const trip = await seedTrip()
+  const removable = await repository.createOfflineMember(trip.id, { displayName: '临时同行者' })
+  await repository.removeMember(removable.id)
+  assert.ok(!(await repository.getTrip(trip.id)).members.some((member) => member.id === removable.id))
+  const linked = trip.members.find((member) => member.userId === null)
+  await repository.createExpense({
+    tripId: trip.id, payerMemberId: trip.currentMemberId, amountFen: 300,
+    participantMemberIds: trip.members.map((member) => member.id), splitMode: 'equal', units: {}, category: 'stay', note: '住宿', spentAt: '2026-09-21T12:00:00.000Z', clientRequestId: 'linked-member-request',
+  })
+  await assert.rejects(() => repository.removeMember(linked.id), /已有账单/)
+})

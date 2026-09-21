@@ -23,6 +23,8 @@ module.exports = {
   createOfflineMember: (tripId, input) => call('member.addOffline', { tripId, ...input }),
   updateOfflineMember: (input) => call('member.updateOffline', input),
   deactivateMember: (memberId) => call('member.deactivate', { memberId }),
+  removeMember: (memberId) => call('member.remove', { memberId }),
+  transferOwner: (input) => call('member.transferOwner', input),
   createExpense: (input) => call('expense.create', input),
   getExpense: (expenseId) => call('expense.get', { expenseId }),
   updateExpense: (input) => call('expense.update', input),
@@ -32,6 +34,8 @@ module.exports = {
   startSettlement: (tripId) => call('settlement.start', { tripId }),
   updateTransferStatus: (input) => call('settlement.transfer.update', input),
   createInvite: (tripId) => call('invite.create', { tripId }),
+  getActiveInvite: (tripId) => call('invite.getActive', { tripId }),
+  revokeInvite: (inviteId) => call('invite.revoke', { inviteId }),
   previewInvite: (inviteId) => call('invite.preview', { inviteId }),
   joinTrip: (input) => call('invite.join', input),
 }

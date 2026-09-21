@@ -8,7 +8,7 @@
 .avatar { display: flex; align-items: center; justify-content: center; width: 64rpx; height: 64rpx; margin-right: 18rpx; background: #e1ebe6; border-radius: 50%; color: #1f6b57; font-weight: 900; }
 .member-main { display: flex; flex: 1; flex-direction: column; gap: 6rpx; }
 .member-main text { color: #7d8983; font-size: 22rpx; }
-.member-actions { display: flex; gap: 8rpx; }
+.member-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8rpx; max-width: 330rpx; }
 .member-actions button, .rename-box button { min-height: 56rpx; margin: 0; padding: 0 12rpx; background: #f0ece2; color: #52635c; font-size: 22rpx; line-height: 56rpx; }
 .rename-box { display: flex; flex: 1; gap: 8rpx; }
 .rename-box input { flex: 1; min-height: 62rpx; padding: 0 12rpx; background: #f5f1e8; border-radius: 10rpx; }

@@ -1,12 +1,12 @@
 <view wx:if="{{trip}}" class="page-shell">
   <view class="eyebrow">TRAVEL CREW</view><view class="page-title">同行伙伴</view><view class="page-subtitle">离线成员无需微信登录，可由创建者代为记账。</view>
-  <view class="paper-card add-card"><input class="member-input" maxlength="30" placeholder="输入成员名字" value="{{newName}}" bindinput="updateNewName"/><button class="primary-button add-button" loading="{{busy}}" bindtap="add">添加</button></view>
+  <view wx:if="{{trip.canManage}}" class="paper-card add-card"><input class="member-input" maxlength="30" placeholder="输入成员名字" value="{{newName}}" bindinput="updateNewName"/><button class="primary-button add-button" loading="{{busy}}" bindtap="add">添加</button></view>
   <view class="section-title">成员列表 · {{trip.members.length}}</view>
   <view class="member-list">
     <view wx:for="{{trip.members}}" wx:key="id" class="member-row {{item.status === 'inactive' ? 'inactive' : ''}}">
       <view class="avatar">{{item.initial}}</view>
       <view wx:if="{{editingId === item.id}}" class="rename-box"><input value="{{editingName}}" bindinput="updateEditingName"/><button bindtap="saveRename">保存</button><button bindtap="cancelRename">取消</button></view>
-      <block wx:else><view class="member-main"><strong>{{item.displayName}}</strong><text>{{item.role === 'owner' ? '创建者' : (item.userId ? '微信成员' : '离线成员')}} · {{item.status === 'active' ? '活跃' : '已停用'}}</text></view><view wx:if="{{item.userId === null && item.status === 'active'}}" class="member-actions"><button data-id="{{item.id}}" data-name="{{item.displayName}}" bindtap="startRename">改名</button><button data-id="{{item.id}}" bindtap="deactivate">停用</button></view></block>
+      <block wx:else><view class="member-main"><strong>{{item.displayName}}</strong><text>{{item.role === 'owner' ? '创建者' : (item.userId ? '微信成员' : '离线成员')}} · {{item.status === 'active' ? '活跃' : '已停用'}}</text></view><view wx:if="{{trip.canManage && item.role !== 'owner' && item.status === 'active'}}" class="member-actions"><button wx:if="{{item.userId === null}}" data-id="{{item.id}}" data-name="{{item.displayName}}" bindtap="startRename">改名</button><button wx:if="{{item.userId}}" data-id="{{item.id}}" data-name="{{item.displayName}}" bindtap="transferOwner">转让</button><button data-id="{{item.id}}" bindtap="remove">移除</button><button data-id="{{item.id}}" bindtap="deactivate">停用</button></view></block>
     </view>
   </view>
 </view>
