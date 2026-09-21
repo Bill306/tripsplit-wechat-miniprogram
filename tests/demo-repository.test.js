@@ -96,3 +96,20 @@ test('deactivated member remains in historical ledger but is excluded from new e
   const activeMemberIds = dashboard.members.filter((member) => member.status === 'active').map((member) => member.id)
   assert.ok(!activeMemberIds.includes(offline.id))
 })
+
+test('updates, archives, and restores a trip without changing its ledger', async () => {
+  const trip = await seedTrip()
+  await repository.updateTrip({ tripId: trip.id, name: '云南八日', destination: '大理与丽江', startDate: '2026-10-01', endDate: '2026-10-08' })
+  let updated = await repository.getTrip(trip.id)
+  assert.equal(updated.name, '云南八日')
+  assert.equal(updated.ledgerRevision, 0)
+  await repository.archiveTrip(trip.id)
+  updated = await repository.getTrip(trip.id)
+  assert.equal(updated.status, 'archived')
+  await assert.rejects(() => repository.createExpense({
+    tripId: trip.id, payerMemberId: trip.currentMemberId, amountFen: 100,
+    participantMemberIds: trip.members.map((member) => member.id), splitMode: 'equal', units: {}, category: 'other', note: '', spentAt: '2026-10-01T12:00:00.000Z', clientRequestId: 'archived-write',
+  }), /不允许改账/)
+  await repository.restoreTrip(trip.id)
+  assert.equal((await repository.getTrip(trip.id)).status, 'active')
+})

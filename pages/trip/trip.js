@@ -16,6 +16,7 @@ Page({
     }
   },
   addExpense() { wx.navigateTo({ url: `/pages/expense-form/expense-form?tripId=${this.data.id}` }) },
+  editTrip() { wx.navigateTo({ url: `/pages/trip-form/trip-form?id=${this.data.id}` }) },
   openExpense(event) { wx.navigateTo({ url: `/pages/expense/expense?id=${event.currentTarget.dataset.id}` }) },
   openSettlement() { wx.navigateTo({ url: `/pages/settlement/settlement?tripId=${this.data.id}` }) },
   manageMembers() { wx.navigateTo({ url: `/pages/members/members?tripId=${this.data.id}` }) },
@@ -28,5 +29,9 @@ Page({
   },
   onShareAppMessage() {
     return { title: `加入 ${this.data.trip.name}，一起记账`, path: this.data.invitePath || `/pages/trip/trip?id=${this.data.id}` }
+  },
+  async restoreTrip() {
+    try { await repository.restoreTrip(this.data.id); await this.loadTrip() }
+    catch (error) { wx.showToast({ title: error.message, icon: 'none' }) }
   },
 })

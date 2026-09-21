@@ -1,14 +1,14 @@
 <view class="page-shell">
-  <view class="eyebrow">NEW JOURNEY</view>
-  <view class="page-title">这次去哪里？</view>
-  <view class="page-subtitle">先创建共享账本，同行伙伴可以稍后继续加。</view>
+  <view class="eyebrow">{{id ? 'JOURNEY SETTINGS' : 'NEW JOURNEY'}}</view>
+  <view class="page-title">{{id ? '行程设置' : '这次去哪里？'}}</view>
+  <view class="page-subtitle">{{id ? '修改名称、目的地和日期，不会改变已有账单。' : '先创建共享账本，同行伙伴可以稍后继续加。'}}</view>
   <view class="field"><text class="field-label">行程名称 *</text><input class="field-input" maxlength="30" placeholder="例如：云南七日" value="{{name}}" data-field="name" bindinput="updateField"/></view>
   <view class="field"><text class="field-label">目的地</text><input class="field-input" placeholder="例如：大理、丽江" value="{{destination}}" data-field="destination" bindinput="updateField"/></view>
   <view class="date-row">
     <view class="field"><text class="field-label">开始日期</text><picker mode="date" value="{{startDate}}" data-field="startDate" bindchange="updateField"><view class="field-picker">{{startDate || '选择日期'}}</view></picker></view>
     <view class="field"><text class="field-label">结束日期</text><picker mode="date" value="{{endDate}}" data-field="endDate" bindchange="updateField"><view class="field-picker">{{endDate || '选择日期'}}</view></picker></view>
   </view>
-  <view class="field"><text class="field-label">你在行程里的名字</text><input class="field-input" value="{{ownerName}}" data-field="ownerName" bindinput="updateField"/></view>
-  <view class="field"><text class="field-label">先加上同行伙伴（可选）</text><textarea class="field-textarea" placeholder="用逗号或换行分开，例如：小明，小红" value="{{companionsText}}" data-field="companionsText" bindinput="updateField"/></view>
-  <view class="fixed-actions"><button class="primary-button" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submit">创建行程</button></view>
+  <block wx:if="{{!id}}"><view class="field"><text class="field-label">你在行程里的名字</text><input class="field-input" value="{{ownerName}}" data-field="ownerName" bindinput="updateField"/></view>
+  <view class="field"><text class="field-label">先加上同行伙伴（可选）</text><textarea class="field-textarea" placeholder="用逗号或换行分开，例如：小明，小红" value="{{companionsText}}" data-field="companionsText" bindinput="updateField"/></view></block>
+  <view class="fixed-actions"><button wx:if="{{id && trip.status !== 'archived'}}" class="danger-button" bindtap="archive">归档</button><button class="primary-button" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submit">{{id ? '保存设置' : '创建行程'}}</button></view>
 </view>

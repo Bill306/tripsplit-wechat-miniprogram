@@ -135,6 +135,38 @@ async function createTrip(openid, input) {
   } catch (error) { await transaction.rollback(); throw error }
 }
 
+async function updateTrip(openid, input) {
+  await memberFor(openid, input.tripId, 'owner')
+  const name = String(input.name || '').trim()
+  assert(name && name.length <= 30, 'VALIDATION_ERROR', '请填写 1 至 30 字的行程名称')
+  assert(!input.startDate || !input.endDate || input.endDate >= input.startDate, 'VALIDATION_ERROR', '结束日期不能早于开始日期')
+  const updatedAt = iso()
+  await db.collection(C.trips).doc(input.tripId).update({ data: { name, destination: String(input.destination || '').trim(), startDate: input.startDate || '', endDate: input.endDate || '', updatedAt } })
+  await db.collection(C.audits).add({ data: { tripId: input.tripId, entityType: 'trip', entityId: input.tripId, action: 'updated', actorUserId: openid, summary: '修改行程设置', createdAt: updatedAt } })
+  return publicDoc((await db.collection(C.trips).doc(input.tripId).get()).data)
+}
+
+async function archiveTrip(openid, tripId) {
+  await memberFor(openid, tripId, 'owner')
+  const trip = (await db.collection(C.trips).doc(tripId).get()).data
+  assert(trip.status !== 'settling', 'SETTLEMENT_LOCKED', '结算进行中，不能归档')
+  const updatedAt = iso()
+  await db.collection(C.trips).doc(tripId).update({ data: { statusBeforeArchive: trip.status, status: 'archived', updatedAt } })
+  await db.collection(C.audits).add({ data: { tripId, entityType: 'trip', entityId: tripId, action: 'archived', actorUserId: openid, summary: '归档行程', createdAt: updatedAt } })
+  return { ...publicDoc(trip), status: 'archived', statusBeforeArchive: trip.status, updatedAt }
+}
+
+async function restoreTrip(openid, tripId) {
+  await memberFor(openid, tripId, 'owner')
+  const trip = (await db.collection(C.trips).doc(tripId).get()).data
+  assert(trip.status === 'archived', 'VALIDATION_ERROR', '行程未归档')
+  const status = trip.statusBeforeArchive || 'active'
+  const updatedAt = iso()
+  await db.collection(C.trips).doc(tripId).update({ data: { status, statusBeforeArchive: command.remove(), updatedAt } })
+  await db.collection(C.audits).add({ data: { tripId, entityType: 'trip', entityId: tripId, action: 'restored', actorUserId: openid, summary: '恢复行程', createdAt: updatedAt } })
+  return { ...publicDoc(trip), status, statusBeforeArchive: undefined, updatedAt }
+}
+
 async function createOfflineMember(openid, input) {
   await memberFor(openid, input.tripId, 'owner')
   const name = String(input.displayName || '').trim()
@@ -356,6 +388,9 @@ const actions = {
   'trip.list': listTrips,
   'trip.get': (openid, payload) => db.collection(C.trips).doc(payload.tripId).get().then((result) => dashboard(openid, result.data)),
   'trip.create': createTrip,
+  'trip.update': updateTrip,
+  'trip.archive': (openid, payload) => archiveTrip(openid, payload.tripId),
+  'trip.restore': (openid, payload) => restoreTrip(openid, payload.tripId),
   'member.addOffline': createOfflineMember,
   'member.updateOffline': updateOfflineMember,
   'member.deactivate': deactivateMember,

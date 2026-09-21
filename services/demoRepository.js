@@ -66,12 +66,48 @@ async function createTrip(input) {
   return clone(trip)
 }
 
+async function updateTrip(input) {
+  const state = load()
+  const trip = state.trips.find((item) => item.id === input.tripId)
+  if (!trip) throw new Error('行程不存在')
+  if (!['active', 'needs_settlement', 'settled'].includes(trip.status)) throw new Error('当前结算状态不允许改账')
+  const name = String(input.name || '').trim()
+  if (!name || name.length > 30) throw new Error('请填写 1 至 30 字的行程名称')
+  Object.assign(trip, { name, destination: String(input.destination || '').trim(), startDate: input.startDate || '', endDate: input.endDate || '', updatedAt: now() })
+  save(state)
+  return clone(trip)
+}
+
+async function archiveTrip(tripId) {
+  const state = load()
+  const trip = state.trips.find((item) => item.id === tripId)
+  if (!trip) throw new Error('行程不存在')
+  if (trip.status === 'settling') throw new Error('结算进行中，不能归档')
+  trip.statusBeforeArchive = trip.status
+  trip.status = 'archived'
+  trip.updatedAt = now()
+  save(state)
+  return clone(trip)
+}
+
+async function restoreTrip(tripId) {
+  const state = load()
+  const trip = state.trips.find((item) => item.id === tripId)
+  if (!trip || trip.status !== 'archived') throw new Error('行程未归档')
+  trip.status = trip.statusBeforeArchive || 'active'
+  delete trip.statusBeforeArchive
+  trip.updatedAt = now()
+  save(state)
+  return clone(trip)
+}
+
 async function createExpense(input) {
   const state = load()
   const duplicate = state.expenses.find((expense) => expense.tripId === input.tripId && expense.createdByUserId === CURRENT_USER_ID && expense.clientRequestId === input.clientRequestId)
   if (duplicate) return clone(duplicate)
   const trip = state.trips.find((item) => item.id === input.tripId)
   if (!trip) throw new Error('行程不存在')
+  if (!['active', 'needs_settlement', 'settled'].includes(trip.status)) throw new Error('当前结算状态不允许改账')
   const members = tripMembers(state, input.tripId)
   const selected = members.filter((member) => input.participantMemberIds.includes(member.id))
   if (selected.length !== input.participantMemberIds.length) throw new Error('参与人不合法')
@@ -226,4 +262,4 @@ async function updateTransferStatus(input) {
 async function createInvite() { throw new Error('多人邀请需先配置微信云开发') }
 async function joinTrip() { throw new Error('多人邀请需先配置微信云开发') }
 
-module.exports = { bootstrap, createExpense, createInvite, createOfflineMember, createTrip, deactivateMember, deleteExpense, getExpense, getSettlement, getTrip, joinTrip, listTrips, previewSettlement, startSettlement, updateExpense, updateOfflineMember, updateTransferStatus }
+module.exports = { archiveTrip, bootstrap, createExpense, createInvite, createOfflineMember, createTrip, deactivateMember, deleteExpense, getExpense, getSettlement, getTrip, joinTrip, listTrips, previewSettlement, restoreTrip, startSettlement, updateExpense, updateOfflineMember, updateTransferStatus, updateTrip }

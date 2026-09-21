@@ -1,6 +1,6 @@
 <view wx:if="{{trip}}" class="page-shell trip-shell">
   <view class="trip-heading"><view><view class="eyebrow">{{trip.destination || 'SHARED JOURNEY'}}</view><view class="page-title">{{trip.name}}</view></view><view class="status-chip">{{trip.statusLabel}}</view></view>
-  <view class="invite-row"><button wx:if="{{!invitePath}}" class="invite-button" bindtap="prepareInvite">生成邀请</button><button wx:else class="invite-button" open-type="share">分享给同行伙伴</button></view>
+  <view class="invite-row"><button class="invite-button" bindtap="editTrip">行程设置</button><button wx:if="{{trip.status !== 'archived' && !invitePath}}" class="invite-button" bindtap="prepareInvite">生成邀请</button><button wx:elif="{{trip.status !== 'archived'}}" class="invite-button" open-type="share">分享给同行伙伴</button></view>
   <view class="paper-card total-card">
     <view class="muted">本次总消费</view><view class="hero-amount">{{trip.totalAmount}}</view>
     <view class="summary-row"><view><text>我已垫付</text><strong>{{trip.myPaidAmount}}</strong></view><view><text>{{trip.myNetLabel}}</text><strong class="{{trip.myNetClass}}">{{trip.myNetAmount}}</strong></view></view>
@@ -16,6 +16,7 @@
     </view>
   </view>
   <view wx:else class="empty-state"><view class="empty-title">还没有账单</view><view class="muted">第一笔可以是住宿、车票，或者出发前的聚餐。</view></view>
-  <view class="fixed-actions"><button class="secondary-button" bindtap="openSettlement">查看结算</button><button class="primary-button" bindtap="addExpense">+  记一笔</button></view>
+  <view wx:if="{{trip.status === 'archived'}}" class="fixed-actions"><button class="primary-button" bindtap="restoreTrip">恢复行程</button></view>
+  <view wx:else class="fixed-actions"><button class="secondary-button" bindtap="openSettlement">查看结算</button><button class="primary-button" bindtap="addExpense">+  记一笔</button></view>
 </view>
 <view wx:elif="{{error}}" class="page-shell"><view class="demo-banner">{{error}}</view></view>

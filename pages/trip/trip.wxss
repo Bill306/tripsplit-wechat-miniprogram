@@ -1,6 +1,6 @@
 .trip-heading { display: flex; align-items: flex-start; justify-content: space-between; }
 .trip-heading .status-chip { margin-top: 12rpx; }
-.invite-row { display: flex; justify-content: flex-end; margin-top: 14rpx; }
+.invite-row { display: flex; justify-content: flex-end; gap: 12rpx; margin-top: 14rpx; }
 .invite-button { min-height: 58rpx; margin: 0; padding: 0 22rpx; background: transparent; border: 2rpx solid #1f6b57; border-radius: 30rpx; color: #1f6b57; font-size: 23rpx; line-height: 56rpx; }
 .total-card { background: #17362e; border-color: #17362e; color: #fffdf8; }
 .total-card .muted { color: #b8c8c1; }
