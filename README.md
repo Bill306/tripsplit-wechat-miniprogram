@@ -46,6 +46,7 @@ npm test
 - `docs/TECHNICAL_DESIGN.md`
 - `docs/UI_SPEC.md`
 - `docs/TEST_PLAN.md`
+- `docs/CLOUD_SETUP.md`
 - `docs/SECURITY.md`
 
 ## 隐私

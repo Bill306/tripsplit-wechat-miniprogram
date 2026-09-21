@@ -12,5 +12,5 @@
     </view>
   </view>
   <view wx:else class="empty-state"><view class="empty-title">已经平账</view><view class="muted">现在没有人需要转账。</view></view>
-  <view wx:if="{{settlement.status === 'preview'}}" class="fixed-actions"><button class="primary-button" bindtap="start">发起结算</button></view>
+  <view wx:if="{{settlement.status === 'preview' && settlement.currentMemberRole === 'owner' && settlement.currentMemberStatus === 'active'}}" class="fixed-actions"><button class="primary-button" bindtap="start">发起结算</button></view>
 </view>

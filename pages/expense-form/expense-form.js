@@ -14,8 +14,9 @@ Page({
   async loadTrip() {
     try {
       const trip = await repository.getTrip(this.data.tripId)
-      trip.members = trip.members.filter((member) => member.status === 'active')
       const expense = this.data.expenseId ? await repository.getExpense(this.data.expenseId) : null
+      const historicalMemberIds = new Set(expense ? [expense.payerMemberId, ...Object.keys(expense.shares)] : [])
+      trip.members = trip.members.filter((member) => member.status === 'active' || historicalMemberIds.has(member.id)).map((member) => ({ ...member, displayLabel: member.status === 'inactive' ? `${member.displayName}（已停用）` : member.displayName }))
       const saved = this.data.expenseId ? null : wx.getStorageSync(this.draftKey())
       const participantMemberIds = expense ? Object.keys(expense.shares) : saved && saved.participantMemberIds ? saved.participantMemberIds : trip.members.map((member) => member.id)
       const units = Object.fromEntries(trip.members.map((member) => [member.id, expense && expense.shareUnits && expense.shareUnits[member.id] ? expense.shareUnits[member.id] : saved && saved.units && saved.units[member.id] ? saved.units[member.id] : 1]))
@@ -72,7 +73,10 @@ Page({
       }
       wx.navigateBack()
     } catch (error) {
-      wx.showToast({ title: error.message, icon: 'none', duration: 2500 })
+      if (error.code === 'REVISION_CONFLICT') {
+        const result = await new Promise((resolve) => wx.showModal({ title: '账单已被别人修改', content: '重新载入最新版本后再编辑，当前未提交内容不会覆盖云端账单。', confirmText: '重新载入', cancelText: '先保留', success: resolve }))
+        if (result.confirm) await this.loadTrip()
+      } else wx.showToast({ title: error.message, icon: 'none', duration: 2500 })
       this.setData({ submitting: false })
     }
   },

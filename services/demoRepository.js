@@ -54,6 +54,12 @@ function addAudit(state, tripId, entityType, entityId, action, summary) {
   state.audits.push({ id: id('audit'), tripId, entityType, entityId, action, actorUserId: CURRENT_USER_ID, actorName: 'Bill', summary, createdAt: now() })
 }
 
+function validateExpenseFields(input) {
+  if (!['food', 'transport', 'stay', 'ticket', 'shopping', 'other'].includes(input.category || 'other')) throw new Error('账单分类不合法')
+  if (String(input.note || '').length > 100) throw new Error('备注最多 100 字')
+  if (typeof input.spentAt !== 'string' || !Number.isFinite(Date.parse(input.spentAt))) throw new Error('消费时间不合法')
+}
+
 async function bootstrap() {
   save(load())
   return { mode: 'demo', userId: CURRENT_USER_ID }
@@ -73,11 +79,15 @@ async function getTrip(tripId) {
 
 async function createTrip(input) {
   const state = load()
+  if (!input.name || !input.name.trim() || input.name.trim().length > 30) throw new Error('请填写 1 至 30 字的行程名称')
+  if (input.startDate && input.endDate && input.endDate < input.startDate) throw new Error('结束日期不能早于开始日期')
+  const ownerName = String(input.ownerName || 'Bill').trim()
+  if (!ownerName || ownerName.length > 30) throw new Error('行程昵称需为 1 至 30 字')
   const createdAt = now()
   const tripId = id('trip')
   const trip = { id: tripId, name: input.name.trim(), destination: (input.destination || '').trim(), startDate: input.startDate || '', endDate: input.endDate || '', ownerUserId: CURRENT_USER_ID, status: 'active', ledgerRevision: 0, createdAt, updatedAt: createdAt }
   state.trips.push(trip)
-  state.members.push({ id: id('member'), tripId, userId: CURRENT_USER_ID, displayName: (input.ownerName || 'Bill').trim(), role: 'owner', status: 'active', createdAt })
+  state.members.push({ id: id('member'), tripId, userId: CURRENT_USER_ID, displayName: ownerName, role: 'owner', status: 'active', createdAt })
   ;(input.companions || []).filter(Boolean).forEach((displayName, index) => {
     state.members.push({ id: id('member'), tripId, userId: null, displayName, role: 'member', status: 'active', createdAt: new Date(Date.now() + index + 1).toISOString() })
   })
@@ -102,6 +112,7 @@ async function archiveTrip(tripId) {
   const state = load()
   const trip = state.trips.find((item) => item.id === tripId)
   if (!trip) throw new Error('行程不存在')
+  if (trip.status === 'archived') throw new Error('行程已归档')
   if (trip.status === 'settling') throw new Error('结算进行中，不能归档')
   trip.statusBeforeArchive = trip.status
   trip.status = 'archived'
@@ -127,6 +138,7 @@ async function createExpense(input) {
   if (duplicate) return clone(duplicate)
   const trip = state.trips.find((item) => item.id === input.tripId)
   if (!trip) throw new Error('行程不存在')
+  validateExpenseFields(input)
   const members = tripMembers(state, input.tripId)
   const selected = members.filter((member) => input.participantMemberIds.includes(member.id))
   if (selected.length !== input.participantMemberIds.length) throw new Error('参与人不合法')
@@ -166,11 +178,15 @@ async function updateExpense(input) {
     error.code = 'REVISION_CONFLICT'
     throw error
   }
+  validateExpenseFields(input)
   const trip = state.trips.find((item) => item.id === expense.tripId)
   if (trip.status === 'settled') throw new Error('已结算账单不可修改，请新增调整账单')
   prepareLedgerWrite(state, trip)
-  const members = tripMembers(state, expense.tripId)
+  const historicalMemberIds = new Set([expense.payerMemberId, ...Object.keys(expense.shares)])
+  const members = allTripMembers(state, expense.tripId).filter((member) => member.status === 'active' || historicalMemberIds.has(member.id))
   const selected = members.filter((member) => input.participantMemberIds.includes(member.id))
+  if (selected.length !== input.participantMemberIds.length) throw new Error('参与人不合法')
+  if (!members.some((member) => member.id === input.payerMemberId)) throw new Error('付款人不合法')
   const shares = input.splitMode === 'units'
     ? splitByUnits(input.amountFen, selected.map((member) => ({ ...member, units: input.units[member.id] })))
     : splitEqual(input.amountFen, selected)
@@ -271,7 +287,7 @@ async function previewSettlement(tripId) {
   const summary = summarizeLedger(members, tripExpenses(state, tripId))
   const names = Object.fromEntries(members.map((member) => [member.id, member.displayName]))
   const current = getCurrentMember(state, tripId)
-  return { status: 'preview', ledgerRevision: trip.ledgerRevision, summary, currentMemberId: current && current.id, currentMemberRole: current && current.role, transfers: buildSettlementTransfers(summary).map((transfer, index) => ({ ...transfer, id: `preview_${index}`, fromName: names[transfer.fromMemberId], toName: names[transfer.toMemberId] })) }
+  return { status: 'preview', ledgerRevision: trip.ledgerRevision, summary, currentMemberId: current && current.id, currentMemberRole: current && current.role, currentMemberStatus: current && current.status, transfers: buildSettlementTransfers(summary).map((transfer, index) => ({ ...transfer, id: `preview_${index}`, fromName: names[transfer.fromMemberId], toName: names[transfer.toMemberId] })) }
 }
 
 async function startSettlement(tripId) {
@@ -280,6 +296,7 @@ async function startSettlement(tripId) {
   if (!trip) throw new Error('行程不存在')
   const existing = state.settlements.find((item) => item.tripId === tripId && item.ledgerRevision === trip.ledgerRevision && item.status === 'active')
   if (existing) return clone(existing)
+  if (!['active', 'needs_settlement'].includes(trip.status)) throw new Error('当前行程状态不允许发起结算')
   const preview = await previewSettlement(tripId)
   const settlement = { ...preview, id: id('settlement'), tripId, status: preview.transfers.length ? 'active' : 'completed', transfers: preview.transfers.map((transfer) => ({ ...transfer, id: id('transfer') })), createdAt: now() }
   state.settlements.push(settlement)
@@ -298,7 +315,7 @@ async function getSettlement(tripId) {
   if (!stored || stored.status === 'invalidated' || stored.ledgerRevision !== trip.ledgerRevision) return previewSettlement(tripId)
   const settlement = clone(stored)
   const current = getCurrentMember(state, tripId)
-  return { ...settlement, currentMemberId: current && current.id, currentMemberRole: current && current.role }
+  return { ...settlement, currentMemberId: current && current.id, currentMemberRole: current && current.role, currentMemberStatus: current && current.status }
 }
 
 async function updateTransferStatus(input) {

@@ -102,6 +102,21 @@ test('deactivated member remains in historical ledger but is excluded from new e
   assert.ok(!activeMemberIds.includes(offline.id))
 })
 
+test('editing a historical expense can preserve a deactivated participant', async () => {
+  const trip = await seedTrip()
+  const offline = trip.members.find((member) => member.userId === null)
+  const expense = await repository.createExpense({
+    tripId: trip.id, payerMemberId: trip.currentMemberId, amountFen: 300,
+    participantMemberIds: trip.members.map((member) => member.id), splitMode: 'equal', units: {}, category: 'stay', note: '旧账', spentAt: '2026-09-21T12:00:00.000Z', clientRequestId: 'inactive-edit-request',
+  })
+  await repository.deactivateMember(offline.id)
+  const updated = await repository.updateExpense({
+    expenseId: expense.id, expectedRevision: 1, payerMemberId: trip.currentMemberId, amountFen: 360,
+    participantMemberIds: trip.members.map((member) => member.id), splitMode: 'equal', units: {}, category: 'stay', note: '旧账修正', spentAt: '2026-09-21T12:00:00.000Z',
+  })
+  assert.equal(updated.shares[offline.id], 120)
+})
+
 test('updates, archives, and restores a trip without changing its ledger', async () => {
   const trip = await seedTrip()
   await repository.updateTrip({ tripId: trip.id, name: '云南八日', destination: '大理与丽江', startDate: '2026-10-01', endDate: '2026-10-08' })

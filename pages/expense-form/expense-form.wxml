@@ -1,13 +1,13 @@
 <view wx:if="{{trip}}" class="page-shell expense-shell">
   <view class="eyebrow">{{expenseId ? 'EDIT ENTRY' : 'QUICK ENTRY'}}</view><view class="page-title">{{expenseId ? '编辑账单' : '记一笔'}}</view><view class="page-subtitle">{{trip.name}}</view>
   <view class="amount-field"><text>¥</text><input type="digit" placeholder="0.00" value="{{amount}}" data-field="amount" bindinput="updateField" focus/></view>
-  <view class="field"><text class="field-label">谁付的</text><picker mode="selector" range="{{trip.members}}" range-key="displayName" value="{{payerIndex}}" bindchange="changePayer"><view class="field-picker">{{trip.members[payerIndex].displayName}} ▾</view></picker></view>
+  <view class="field"><text class="field-label">谁付的</text><picker mode="selector" range="{{trip.members}}" range-key="displayLabel" value="{{payerIndex}}" bindchange="changePayer"><view class="field-picker">{{trip.members[payerIndex].displayLabel}} ▾</view></picker></view>
   <view class="field"><text class="field-label">谁参与</text><checkbox-group bindchange="changeParticipants" class="member-grid">
-    <label wx:for="{{trip.members}}" wx:key="id" class="check-chip"><checkbox value="{{item.id}}" checked="{{item.selected}}" color="#1F6B57"/>{{item.displayName}}</label>
+    <label wx:for="{{trip.members}}" wx:key="id" class="check-chip"><checkbox value="{{item.id}}" checked="{{item.selected}}" color="#1F6B57"/>{{item.displayLabel}}</label>
   </checkbox-group></view>
   <view class="field"><text class="field-label">怎么分</text><radio-group bindchange="changeSplitMode" class="segment"><label class="{{splitMode === 'equal' ? 'active' : ''}}"><radio value="equal" checked="{{splitMode === 'equal'}}"/>均分</label><label class="{{splitMode === 'units' ? 'active' : ''}}"><radio value="units" checked="{{splitMode === 'units'}}"/>按份数</label></radio-group></view>
   <view wx:if="{{splitMode === 'units'}}" class="units-list">
-    <view wx:for="{{trip.members}}" wx:key="id" wx:if="{{item.selected}}" class="unit-row"><text>{{item.displayName}}</text><input type="number" value="{{units[item.id]}}" data-id="{{item.id}}" bindinput="changeUnits"/><text>份</text></view>
+    <view wx:for="{{trip.members}}" wx:key="id" wx:if="{{item.selected}}" class="unit-row"><text>{{item.displayLabel}}</text><input type="number" value="{{units[item.id]}}" data-id="{{item.id}}" bindinput="changeUnits"/><text>份</text></view>
   </view>
   <view class="field"><text class="field-label">分类</text><view class="category-grid"><view wx:for="{{categories}}" wx:key="value" class="category-item {{category === item.value ? 'active' : ''}}" data-value="{{item.value}}" bindtap="chooseCategory"><text>{{item.icon}}</text><text>{{item.label}}</text></view></view></view>
   <view class="field"><text class="field-label">备注（可选）</text><input class="field-input" maxlength="100" placeholder="例如：洱海边的晚饭" value="{{note}}" data-field="note" bindinput="updateField"/></view>
