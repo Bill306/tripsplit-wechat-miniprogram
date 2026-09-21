@@ -1,0 +1,21 @@
+<view wx:if="{{trip}}" class="page-shell trip-shell">
+  <view class="trip-heading"><view><view class="eyebrow">{{trip.destination || 'SHARED JOURNEY'}}</view><view class="page-title">{{trip.name}}</view></view><view class="status-chip">{{trip.statusLabel}}</view></view>
+  <view class="invite-row"><button wx:if="{{!invitePath}}" class="invite-button" bindtap="prepareInvite">生成邀请</button><button wx:else class="invite-button" open-type="share">分享给同行伙伴</button></view>
+  <view class="paper-card total-card">
+    <view class="muted">本次总消费</view><view class="hero-amount">{{trip.totalAmount}}</view>
+    <view class="summary-row"><view><text>我已垫付</text><strong>{{trip.myPaidAmount}}</strong></view><view><text>{{trip.myNetLabel}}</text><strong class="{{trip.myNetClass}}">{{trip.myNetAmount}}</strong></view></view>
+  </view>
+  <view class="section-title">成员净额</view>
+  <scroll-view class="member-strip" scroll-x enhanced show-scrollbar="false">
+    <view wx:for="{{trip.summary}}" wx:key="memberId" class="member-pill"><view class="member-avatar">{{item.initial}}</view><view><text>{{item.displayName}}</text><text class="member-net {{item.netClass}}">{{item.netLabel}} {{item.netAmountText}}</text></view></view>
+  </scroll-view>
+  <view class="section-title">最近账单</view>
+  <view wx:if="{{trip.expenses.length}}" class="expense-list">
+    <view wx:for="{{trip.expenses}}" wx:key="id" class="expense-row">
+      <view class="expense-icon">{{item.categoryIcon}}</view><view class="expense-main"><view class="expense-note">{{item.note || item.categoryLabel}}</view><view class="expense-meta">{{item.payerName}} 垫付 · {{item.spentAtText}}</view></view><view class="expense-amount">{{item.amountText}}</view>
+    </view>
+  </view>
+  <view wx:else class="empty-state"><view class="empty-title">还没有账单</view><view class="muted">第一笔可以是住宿、车票，或者出发前的聚餐。</view></view>
+  <view class="fixed-actions"><button class="secondary-button" bindtap="openSettlement">查看结算</button><button class="primary-button" bindtap="addExpense">+  记一笔</button></view>
+</view>
+<view wx:elif="{{error}}" class="page-shell"><view class="demo-banner">{{error}}</view></view>

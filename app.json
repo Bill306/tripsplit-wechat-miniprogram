@@ -1,12 +1,19 @@
 {
   "pages": [
     "pages/index/index",
-    "pages/logs/logs"
+    "pages/trip-form/trip-form",
+    "pages/trip/trip",
+    "pages/expense-form/expense-form",
+    "pages/settlement/settlement",
+    "pages/join/join"
   ],
   "window": {
-    "navigationBarTextStyle": "black",
-    "navigationBarTitleText": "Weixin",
-    "navigationBarBackgroundColor": "#ffffff"
+    "navigationBarTextStyle": "white",
+    "navigationBarTitleText": "TripSplit",
+    "navigationBarBackgroundColor": "#17362E",
+    "backgroundColor": "#F5F1E8",
+    "backgroundTextStyle": "dark",
+    "enablePullDownRefresh": false
   },
   "style": "v2",
   "componentFramework": "glass-easel",

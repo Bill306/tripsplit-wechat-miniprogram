@@ -1,0 +1,16 @@
+<view wx:if="{{settlement}}" class="page-shell">
+  <view class="eyebrow">SETTLEMENT</view><view class="settle-head"><view class="page-title">这样转，最清楚。</view><view class="status-chip">{{settlement.statusLabel}}</view></view>
+  <view class="page-subtitle">基于第 {{settlement.ledgerRevision}} 版账本，转账金额与每人净额可相互核对。</view>
+  <view class="section-title">成员余额</view>
+  <view class="balance-list"><view wx:for="{{settlement.summary}}" wx:key="memberId" class="balance-row"><view class="member-avatar">{{item.initial}}</view><text class="balance-name">{{item.displayName}}</text><text class="{{item.netClass}}">{{item.netLabel}} {{item.netText}}</text></view></view>
+  <view class="section-title">转账清单</view>
+  <view wx:if="{{settlement.transfers.length}}">
+    <view wx:for="{{settlement.transfers}}" wx:key="id" class="paper-card transfer-card">
+      <view class="transfer-route"><strong>{{item.fromName}}</strong><text>→</text><strong>{{item.toName}}</strong></view><view class="transfer-amount">{{item.amountText}}</view><view class="transfer-status">{{item.statusLabel}}</view>
+      <button wx:if="{{settlement.status === 'active' && item.status === 'pending'}}" class="secondary-button mini-button" data-id="{{item.id}}" data-status="paid" loading="{{busyId === item.id}}" bindtap="updateStatus">付款方：标记已支付</button>
+      <button wx:elif="{{settlement.status === 'active' && item.status === 'paid'}}" class="primary-button mini-button" data-id="{{item.id}}" data-status="received" loading="{{busyId === item.id}}" bindtap="updateStatus">收款方：确认已收款</button>
+    </view>
+  </view>
+  <view wx:else class="empty-state"><view class="empty-title">已经平账</view><view class="muted">现在没有人需要转账。</view></view>
+  <view wx:if="{{settlement.status === 'preview'}}" class="fixed-actions"><button class="primary-button" bindtap="start">发起结算</button></view>
+</view>

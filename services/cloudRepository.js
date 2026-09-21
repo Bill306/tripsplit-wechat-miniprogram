@@ -1,0 +1,27 @@
+'use strict'
+
+function call(action, payload = {}) {
+  return wx.cloud.callFunction({ name: 'api', data: { action, payload } }).then(({ result }) => {
+    if (!result || result.ok !== true) {
+      const error = new Error((result && result.error && result.error.message) || '云端请求失败')
+      error.code = result && result.error && result.error.code
+      error.details = result && result.error && result.error.details
+      throw error
+    }
+    return result.data
+  })
+}
+
+module.exports = {
+  bootstrap: () => call('bootstrap'),
+  listTrips: () => call('trip.list'),
+  getTrip: (tripId) => call('trip.get', { tripId }),
+  createTrip: (input) => call('trip.create', input),
+  createExpense: (input) => call('expense.create', input),
+  previewSettlement: (tripId) => call('settlement.preview', { tripId }),
+  getSettlement: (tripId) => call('settlement.get', { tripId }),
+  startSettlement: (tripId) => call('settlement.start', { tripId }),
+  updateTransferStatus: (input) => call('settlement.transfer.update', input),
+  createInvite: (tripId) => call('invite.create', { tripId }),
+  joinTrip: (input) => call('invite.join', input),
+}

@@ -1,0 +1,1 @@
+.join-stamp { display: flex; align-items: center; justify-content: center; width: 112rpx; height: 112rpx; margin: 50rpx 0 34rpx; background: #17362e; border-radius: 36rpx 36rpx 36rpx 8rpx; font-size: 52rpx; }

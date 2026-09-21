@@ -1,10 +1,32 @@
-/**app.wxss**/
-.container {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
-  padding: 200rpx 0;
-  box-sizing: border-box;
-} 
+page {
+  min-height: 100%;
+  background: #f5f1e8;
+  color: #17362e;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 28rpx;
+}
+
+view, text, input, button, picker, textarea { box-sizing: border-box; }
+button::after { border: 0; }
+.page-shell { min-height: 100vh; padding: 32rpx 28rpx calc(180rpx + env(safe-area-inset-bottom)); }
+.eyebrow { color: #f26b4b; font-size: 24rpx; font-weight: 700; letter-spacing: 3rpx; }
+.page-title { margin-top: 12rpx; font-size: 52rpx; font-weight: 800; line-height: 1.16; }
+.page-subtitle { margin-top: 12rpx; color: #6e7c75; line-height: 1.55; }
+.paper-card { margin-top: 28rpx; padding: 28rpx; background: #fffdf8; border: 2rpx solid #ddd7c9; border-radius: 24rpx; box-shadow: 0 12rpx 32rpx rgba(23, 54, 46, 0.07); }
+.section-title { margin: 38rpx 0 16rpx; font-size: 30rpx; font-weight: 800; }
+.field { margin-top: 28rpx; }
+.field-label { display: block; margin-bottom: 12rpx; color: #52635c; font-size: 24rpx; font-weight: 700; }
+.field-input, .field-textarea, .field-picker { width: 100%; min-height: 88rpx; padding: 22rpx 24rpx; background: #fffdf8; border: 2rpx solid #d8d2c4; border-radius: 18rpx; color: #17362e; }
+.field-textarea { min-height: 150rpx; }
+.primary-button, .secondary-button, .danger-button { min-height: 92rpx; border-radius: 46rpx; font-size: 30rpx; font-weight: 800; line-height: 92rpx; }
+.primary-button { background: #1f6b57; color: #fffdf8; }
+.secondary-button { background: #ebe6da; color: #17362e; }
+.danger-button { background: #fbe3dc; color: #a73c2b; }
+.fixed-actions { position: fixed; z-index: 10; right: 0; bottom: 0; left: 0; display: flex; gap: 18rpx; padding: 22rpx 28rpx calc(22rpx + env(safe-area-inset-bottom)); background: rgba(245, 241, 232, 0.97); border-top: 2rpx solid #ddd7c9; }
+.fixed-actions button { flex: 1; }
+.amount-positive { color: #167a5a; }
+.amount-negative { color: #c24b3a; }
+.muted { color: #6e7c75; }
+.status-chip { display: inline-flex; align-items: center; min-height: 46rpx; padding: 0 18rpx; background: #e6efe9; border-radius: 24rpx; color: #1f6b57; font-size: 22rpx; font-weight: 700; }
+.demo-banner { margin: 20rpx 0; padding: 18rpx 22rpx; background: #fff0d7; border: 2rpx solid #efc983; border-radius: 16rpx; color: #7d5717; font-size: 24rpx; line-height: 1.45; }
+.empty-state { margin-top: 36rpx; padding: 64rpx 34rpx; text-align: center; background: #fffdf8; border: 2rpx dashed #cec6b6; border-radius: 28rpx; }

@@ -1,62 +1,15 @@
-/**index.wxss**/
-page {
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-.scrollarea {
-  flex: 1;
-  overflow-y: hidden;
-}
-
-.userinfo {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  color: #aaa;
-  width: 80%;
-}
-
-.userinfo-avatar {
-  overflow: hidden;
-  width: 128rpx;
-  height: 128rpx;
-  margin: 20rpx;
-  border-radius: 50%;
-}
-
-.usermotto {
-  margin-top: 200px;
-}
-
-.avatar-wrapper {
-  padding: 0;
-  width: 56px !important;
-  border-radius: 8px;
-  margin-top: 40px;
-  margin-bottom: 40px;
-}
-
-.avatar {
-  display: block;
-  width: 56px;
-  height: 56px;
-}
-
-.nickname-wrapper {
-  display: flex;
-  width: 100%;
-  padding: 16px;
-  box-sizing: border-box;
-  border-top: .5px solid rgba(0, 0, 0, 0.1);
-  border-bottom: .5px solid rgba(0, 0, 0, 0.1);
-  color: black;
-}
-
-.nickname-label {
-  width: 105px;
-}
-
-.nickname-input {
-  flex: 1;
-}
+.home-shell { padding-top: 54rpx; }
+.brand-mark { display: flex; align-items: center; justify-content: center; width: 72rpx; height: 72rpx; margin-bottom: 28rpx; background: #17362e; border-radius: 20rpx 20rpx 20rpx 4rpx; color: #fffdf8; font-size: 26rpx; font-weight: 900; }
+.trip-list { margin-top: 42rpx; }
+.trip-card { position: relative; overflow: hidden; }
+.trip-card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 10rpx; background: #f26b4b; }
+.trip-card-head, .trip-metrics { display: flex; align-items: flex-start; justify-content: space-between; }
+.trip-name { max-width: 390rpx; font-size: 34rpx; font-weight: 800; }
+.trip-meta { margin-top: 10rpx; color: #6e7c75; font-size: 24rpx; }
+.ticket-line { margin: 26rpx 0; border-top: 2rpx dashed #d8d2c4; }
+.trip-metrics > view { display: flex; flex-direction: column; }
+.metric-right { text-align: right; }
+.metric-label { color: #6e7c75; font-size: 22rpx; }
+.metric-value { margin-top: 8rpx; font-size: 30rpx; font-weight: 800; }
+.empty-icon { font-size: 64rpx; }
+.empty-title { margin: 18rpx 0 10rpx; font-size: 32rpx; font-weight: 800; }

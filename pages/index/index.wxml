@@ -1,27 +1,25 @@
-<!--index.wxml-->
-<scroll-view class="scrollarea" scroll-y type="list">
-  <view class="container">
-    <view class="userinfo">
-      <block wx:if="{{canIUseNicknameComp && !hasUserInfo}}">
-        <button class="avatar-wrapper" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar">
-          <image class="avatar" src="{{userInfo.avatarUrl}}"></image>
-        </button>
-        <view class="nickname-wrapper">
-          <text class="nickname-label">昵称</text>
-          <input type="nickname" class="nickname-input" placeholder="请输入昵称" bind:change="onInputChange" />
-        </view>
-      </block>
-      <block wx:elif="{{!hasUserInfo}}">
-        <button wx:if="{{canIUseGetUserProfile}}" bindtap="getUserProfile"> 获取头像昵称 </button>
-        <view wx:else> 请使用2.10.4及以上版本基础库 </view>
-      </block>
-      <block wx:else>
-        <image bindtap="bindViewTap" class="userinfo-avatar" src="{{userInfo.avatarUrl}}" mode="cover"></image>
-        <text class="userinfo-nickname">{{userInfo.nickName}}</text>
-      </block>
-    </view>
-    <view class="usermotto">
-      <text class="user-motto">{{motto}}</text>
+<view class="page-shell home-shell">
+  <view class="brand-mark">TS</view>
+  <view class="eyebrow">TRAVEL LEDGER</view>
+  <view class="page-title">旅行中随手记，<br/>结束时不用算。</view>
+  <view class="page-subtitle">和朋友共享一本账，谁垫付、谁应付，一眼看清。</view>
+  <view wx:if="{{mode === 'demo'}}" class="demo-banner">当前为本机演示模式；界面与计算可用，但多人共享需完成云开发配置。</view>
+  <view wx:if="{{error}}" class="demo-banner">{{error}}</view>
+  <view wx:if="{{trips.length}}" class="trip-list">
+    <view wx:for="{{trips}}" wx:key="id" class="paper-card trip-card" data-id="{{item.id}}" bindtap="openTrip">
+      <view class="trip-card-head">
+        <view><view class="trip-name">{{item.name}}</view><view class="trip-meta">{{item.destination || '还没填目的地'}} · {{item.members.length}} 人</view></view>
+        <view class="status-chip">{{item.statusLabel}}</view>
+      </view>
+      <view class="ticket-line"></view>
+      <view class="trip-metrics">
+        <view><text class="metric-label">总消费</text><text class="metric-value">{{item.totalAmount}}</text></view>
+        <view class="metric-right"><text class="metric-label">{{item.myNetLabel}}</text><text class="metric-value {{item.myNetClass}}">{{item.myNetAmount}}</text></view>
+      </view>
     </view>
   </view>
-</scroll-view>
+  <view wx:elif="{{!loading}}" class="empty-state">
+    <view class="empty-icon">🧭</view><view class="empty-title">先建立第一次旅行</view><view class="muted">把同行伙伴和每笔费用放在一起。</view>
+  </view>
+  <view class="fixed-actions"><button class="primary-button" bindtap="createTrip">+  创建新行程</button></view>
+</view>
