@@ -5,7 +5,7 @@
     <view class="muted">本次总消费</view><view class="hero-amount">{{trip.totalAmount}}</view>
     <view class="summary-row"><view><text>我已垫付</text><strong>{{trip.myPaidAmount}}</strong></view><view><text>{{trip.myNetLabel}}</text><strong class="{{trip.myNetClass}}">{{trip.myNetAmount}}</strong></view></view>
   </view>
-  <view class="section-title">成员净额</view>
+  <view class="section-head"><view class="section-title">成员净额</view><button wx:if="{{trip.currentMemberRole === 'owner'}}" class="text-button" bindtap="manageMembers">管理成员</button></view>
   <scroll-view class="member-strip" scroll-x enhanced show-scrollbar="false">
     <view wx:for="{{trip.summary}}" wx:key="memberId" class="member-pill"><view class="member-avatar">{{item.initial}}</view><view><text>{{item.displayName}}</text><text class="member-net {{item.netClass}}">{{item.netLabel}} {{item.netAmountText}}</text></view></view>
   </scroll-view>

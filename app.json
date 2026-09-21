@@ -6,6 +6,7 @@
     "pages/expense-form/expense-form",
     "pages/expense/expense",
     "pages/settlement/settlement",
+    "pages/members/members",
     "pages/join/join"
   ],
   "window": {

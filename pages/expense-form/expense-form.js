@@ -14,6 +14,7 @@ Page({
   async loadTrip() {
     try {
       const trip = await repository.getTrip(this.data.tripId)
+      trip.members = trip.members.filter((member) => member.status === 'active')
       const expense = this.data.expenseId ? await repository.getExpense(this.data.expenseId) : null
       const saved = this.data.expenseId ? null : wx.getStorageSync(this.draftKey())
       const participantMemberIds = expense ? Object.keys(expense.shares) : saved && saved.participantMemberIds ? saved.participantMemberIds : trip.members.map((member) => member.id)

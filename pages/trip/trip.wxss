@@ -10,6 +10,9 @@
 .summary-row view:last-child { text-align: right; }
 .summary-row text { color: #b8c8c1; font-size: 23rpx; }
 .summary-row strong { font-size: 30rpx; }
+.section-head { display: flex; align-items: center; justify-content: space-between; margin-top: 28rpx; }
+.section-head .section-title { margin: 10rpx 0 16rpx; }
+.text-button { min-height: 60rpx; margin: 0; padding: 0 10rpx; background: transparent; color: #1f6b57; font-size: 24rpx; line-height: 60rpx; }
 .member-strip { width: 100%; white-space: nowrap; }
 .member-pill { display: inline-flex; align-items: center; gap: 16rpx; min-width: 270rpx; margin-right: 16rpx; padding: 20rpx; background: #fffdf8; border: 2rpx solid #ddd7c9; border-radius: 20rpx; }
 .member-avatar { display: flex; align-items: center; justify-content: center; width: 66rpx; height: 66rpx; background: #e1ebe6; border-radius: 50%; color: #1f6b57; font-weight: 900; }

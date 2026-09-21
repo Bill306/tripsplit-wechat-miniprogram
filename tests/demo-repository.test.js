@@ -81,3 +81,18 @@ test('settlement advances pending to paid to received and completes the trip', a
   assert.equal(settlement.status, 'completed')
   assert.equal((await repository.getTrip(trip.id)).status, 'settled')
 })
+
+test('deactivated member remains in historical ledger but is excluded from new expenses', async () => {
+  const trip = await seedTrip()
+  const offline = trip.members.find((member) => member.userId === null)
+  await repository.createExpense({
+    tripId: trip.id, payerMemberId: trip.currentMemberId, amountFen: 300,
+    participantMemberIds: trip.members.map((member) => member.id), splitMode: 'equal', units: {}, category: 'stay', note: '旧账', spentAt: '2026-09-21T12:00:00.000Z', clientRequestId: 'historical-member',
+  })
+  await repository.deactivateMember(offline.id)
+  const dashboard = await repository.getTrip(trip.id)
+  assert.equal(dashboard.members.find((member) => member.id === offline.id).status, 'inactive')
+  assert.ok(dashboard.summary.some((item) => item.memberId === offline.id && item.owedAmount === 100))
+  const activeMemberIds = dashboard.members.filter((member) => member.status === 'active').map((member) => member.id)
+  assert.ok(!activeMemberIds.includes(offline.id))
+})

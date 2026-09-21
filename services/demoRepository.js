@@ -11,12 +11,13 @@ const id = (prefix) => `${prefix}_${Date.now()}_${Math.random().toString(36).sli
 const load = () => wx.getStorageSync(STORAGE_KEY) || { trips: [], members: [], expenses: [], settlements: [] }
 const save = (state) => wx.setStorageSync(STORAGE_KEY, state)
 const clone = (value) => JSON.parse(JSON.stringify(value))
+const allTripMembers = (state, tripId) => state.members.filter((member) => member.tripId === tripId)
 const tripMembers = (state, tripId) => state.members.filter((member) => member.tripId === tripId && member.status === 'active')
 const tripExpenses = (state, tripId) => state.expenses.filter((expense) => expense.tripId === tripId && !expense.deletedAt)
 const getCurrentMember = (state, tripId) => state.members.find((member) => member.tripId === tripId && member.userId === CURRENT_USER_ID)
 
 function buildDashboard(state, trip) {
-  const members = tripMembers(state, trip.id)
+  const members = allTripMembers(state, trip.id)
   const expenses = tripExpenses(state, trip.id)
   const summary = summarizeLedger(members, expenses)
   const currentMember = getCurrentMember(state, trip.id)
@@ -30,6 +31,7 @@ function buildDashboard(state, trip) {
     currentMemberId: currentMember && currentMember.id,
     myPaidAmountFen: mine ? mine.paidAmount : 0,
     myNetAmountFen: mine ? mine.netAmount : 0,
+    currentMemberRole: currentMember && currentMember.role,
   }
 }
 
@@ -90,7 +92,7 @@ async function getExpense(expenseId) {
   const state = load()
   const expense = state.expenses.find((item) => item.id === expenseId && !item.deletedAt)
   if (!expense) throw new Error('账单不存在')
-  const members = tripMembers(state, expense.tripId)
+  const members = allTripMembers(state, expense.tripId)
   return { ...clone(expense), members: clone(members) }
 }
 
@@ -136,11 +138,44 @@ async function deleteExpense(input) {
   return { deleted: true }
 }
 
+async function createOfflineMember(tripId, input) {
+  const state = load()
+  const trip = state.trips.find((item) => item.id === tripId)
+  if (!trip) throw new Error('行程不存在')
+  const name = String(input.displayName || '').trim()
+  if (!name || name.length > 30) throw new Error('成员名称需为 1 至 30 字')
+  if (allTripMembers(state, tripId).filter((item) => item.status === 'active').length >= 20) throw new Error('每个行程最多 20 名成员')
+  const member = { id: id('member'), tripId, userId: null, displayName: name, role: 'member', status: 'active', createdAt: now() }
+  state.members.push(member)
+  save(state)
+  return clone(member)
+}
+
+async function updateOfflineMember(input) {
+  const state = load()
+  const member = state.members.find((item) => item.id === input.memberId && item.userId === null)
+  if (!member) throw new Error('离线成员不存在')
+  const name = String(input.displayName || '').trim()
+  if (!name || name.length > 30) throw new Error('成员名称需为 1 至 30 字')
+  member.displayName = name
+  save(state)
+  return clone(member)
+}
+
+async function deactivateMember(memberId) {
+  const state = load()
+  const member = state.members.find((item) => item.id === memberId && item.role !== 'owner')
+  if (!member) throw new Error('成员不存在或不可停用')
+  member.status = 'inactive'
+  save(state)
+  return clone(member)
+}
+
 async function previewSettlement(tripId) {
   const state = load()
   const trip = state.trips.find((item) => item.id === tripId)
   if (!trip) throw new Error('行程不存在')
-  const members = tripMembers(state, tripId)
+  const members = allTripMembers(state, tripId)
   const summary = summarizeLedger(members, tripExpenses(state, tripId))
   const names = Object.fromEntries(members.map((member) => [member.id, member.displayName]))
   return { status: 'preview', ledgerRevision: trip.ledgerRevision, summary, transfers: buildSettlementTransfers(summary).map((transfer, index) => ({ ...transfer, id: `preview_${index}`, fromName: names[transfer.fromMemberId], toName: names[transfer.toMemberId] })) }
@@ -191,4 +226,4 @@ async function updateTransferStatus(input) {
 async function createInvite() { throw new Error('多人邀请需先配置微信云开发') }
 async function joinTrip() { throw new Error('多人邀请需先配置微信云开发') }
 
-module.exports = { bootstrap, createExpense, createInvite, createTrip, deleteExpense, getExpense, getSettlement, getTrip, joinTrip, listTrips, previewSettlement, startSettlement, updateExpense, updateTransferStatus }
+module.exports = { bootstrap, createExpense, createInvite, createOfflineMember, createTrip, deactivateMember, deleteExpense, getExpense, getSettlement, getTrip, joinTrip, listTrips, previewSettlement, startSettlement, updateExpense, updateOfflineMember, updateTransferStatus }

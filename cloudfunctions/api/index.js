@@ -103,7 +103,7 @@ async function dashboard(openid, trip) {
   return {
     ...publicDoc(trip),
     members: data.members.map(publicDoc), expenses: data.expenses.map(publicDoc).sort((a, b) => b.spentAt.localeCompare(a.spentAt)), summary: data.summary,
-    totalAmountFen: data.expenses.reduce((sum, expense) => sum + expense.amountFen, 0), currentMemberId: current && current._id,
+    totalAmountFen: data.expenses.reduce((sum, expense) => sum + expense.amountFen, 0), currentMemberId: current && current._id, currentMemberRole: current && current.role,
     myPaidAmountFen: mine ? mine.paidAmount : 0, myNetAmountFen: mine ? mine.netAmount : 0,
   }
 }
@@ -133,6 +133,38 @@ async function createTrip(openid, input) {
     await transaction.commit()
     return { id: tripResult._id }
   } catch (error) { await transaction.rollback(); throw error }
+}
+
+async function createOfflineMember(openid, input) {
+  await memberFor(openid, input.tripId, 'owner')
+  const name = String(input.displayName || '').trim()
+  assert(name && name.length <= 30, 'VALIDATION_ERROR', '成员名称需为 1 至 30 字')
+  const active = await allWhere(C.members, { tripId: input.tripId, status: 'active' })
+  assert(active.length < 20, 'VALIDATION_ERROR', '每个行程最多 20 名成员')
+  const createdAt = iso()
+  const result = await db.collection(C.members).add({ data: { tripId: input.tripId, userId: null, displayName: name, role: 'member', status: 'active', createdAt } })
+  await db.collection(C.audits).add({ data: { tripId: input.tripId, entityType: 'member', entityId: result._id, action: 'offline_member_added', actorUserId: openid, summary: `添加离线成员 ${name}`, createdAt } })
+  return { id: result._id, tripId: input.tripId, userId: null, displayName: name, role: 'member', status: 'active', createdAt }
+}
+
+async function updateOfflineMember(openid, input) {
+  const target = (await db.collection(C.members).doc(input.memberId).get()).data
+  assert(target && target.userId === null, 'NOT_FOUND', '离线成员不存在')
+  await memberFor(openid, target.tripId, 'owner')
+  const name = String(input.displayName || '').trim()
+  assert(name && name.length <= 30, 'VALIDATION_ERROR', '成员名称需为 1 至 30 字')
+  await db.collection(C.members).doc(target._id).update({ data: { displayName: name } })
+  await db.collection(C.audits).add({ data: { tripId: target.tripId, entityType: 'member', entityId: target._id, action: 'offline_member_renamed', actorUserId: openid, summary: `成员改名：${target.displayName} -> ${name}`, createdAt: iso() } })
+  return { ...publicDoc(target), displayName: name }
+}
+
+async function deactivateMember(openid, input) {
+  const target = (await db.collection(C.members).doc(input.memberId).get()).data
+  assert(target && target.role !== 'owner', 'NOT_FOUND', '成员不存在或不可停用')
+  await memberFor(openid, target.tripId, 'owner')
+  await db.collection(C.members).doc(target._id).update({ data: { status: 'inactive', deactivatedAt: iso() } })
+  await db.collection(C.audits).add({ data: { tripId: target.tripId, entityType: 'member', entityId: target._id, action: 'member_deactivated', actorUserId: openid, summary: `停用成员 ${target.displayName}`, createdAt: iso() } })
+  return { ...publicDoc(target), status: 'inactive' }
 }
 
 async function createExpense(openid, input) {
@@ -324,6 +356,9 @@ const actions = {
   'trip.list': listTrips,
   'trip.get': (openid, payload) => db.collection(C.trips).doc(payload.tripId).get().then((result) => dashboard(openid, result.data)),
   'trip.create': createTrip,
+  'member.addOffline': createOfflineMember,
+  'member.updateOffline': updateOfflineMember,
+  'member.deactivate': deactivateMember,
   'expense.create': createExpense,
   'expense.get': (openid, payload) => getExpense(openid, payload.expenseId),
   'expense.update': updateExpense,
