@@ -12,3 +12,5 @@
 .transfer-amount { margin-top: 18rpx; font-size: 48rpx; font-weight: 900; }
 .transfer-status { margin: 8rpx 0 22rpx; color: #6e7c75; font-size: 24rpx; }
 .mini-button { min-height: 76rpx; font-size: 26rpx; line-height: 76rpx; }
+.transfer-actions { display: flex; gap: 12rpx; }
+.transfer-actions button { flex: 1; }

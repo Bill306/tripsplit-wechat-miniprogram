@@ -74,8 +74,13 @@ test('settlement advances pending to paid to received and completes the trip', a
     participantMemberIds: trip.members.map((member) => member.id), splitMode: 'equal', units: {}, category: 'stay', note: '住宿', spentAt: '2026-09-21T12:00:00.000Z', clientRequestId: 'settle-request',
   })
   let settlement = await repository.startSettlement(trip.id)
-  for (const transfer of settlement.transfers) {
+  for (let index = 0; index < settlement.transfers.length; index += 1) {
+    const transfer = settlement.transfers[index]
     settlement = await repository.updateTransferStatus({ settlementId: settlement.id, transferId: transfer.id, status: 'paid' })
+    if (index === 0) {
+      settlement = await repository.updateTransferStatus({ settlementId: settlement.id, transferId: transfer.id, status: 'pending' })
+      settlement = await repository.updateTransferStatus({ settlementId: settlement.id, transferId: transfer.id, status: 'paid' })
+    }
     settlement = await repository.updateTransferStatus({ settlementId: settlement.id, transferId: transfer.id, status: 'received' })
   }
   assert.equal(settlement.status, 'completed')

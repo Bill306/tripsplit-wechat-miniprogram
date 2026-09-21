@@ -7,8 +7,8 @@
   <view wx:if="{{settlement.transfers.length}}">
     <view wx:for="{{settlement.transfers}}" wx:key="id" class="paper-card transfer-card">
       <view class="transfer-route"><strong>{{item.fromName}}</strong><text>→</text><strong>{{item.toName}}</strong></view><view class="transfer-amount">{{item.amountText}}</view><view class="transfer-status">{{item.statusLabel}}</view>
-      <button wx:if="{{settlement.status === 'active' && item.status === 'pending'}}" class="secondary-button mini-button" data-id="{{item.id}}" data-status="paid" loading="{{busyId === item.id}}" bindtap="updateStatus">付款方：标记已支付</button>
-      <button wx:elif="{{settlement.status === 'active' && item.status === 'paid'}}" class="primary-button mini-button" data-id="{{item.id}}" data-status="received" loading="{{busyId === item.id}}" bindtap="updateStatus">收款方：确认已收款</button>
+      <button wx:if="{{settlement.status === 'active' && item.status === 'pending' && item.canMarkPaid}}" class="secondary-button mini-button" data-id="{{item.id}}" data-status="paid" loading="{{busyId === item.id}}" bindtap="updateStatus">付款方：标记已支付</button>
+      <view wx:if="{{settlement.status === 'active' && item.status === 'paid'}}" class="transfer-actions"><button wx:if="{{item.canResetPaid}}" class="secondary-button mini-button" data-id="{{item.id}}" data-status="pending" loading="{{busyId === item.id}}" bindtap="updateStatus">撤销已支付</button><button wx:if="{{item.canConfirmReceived}}" class="primary-button mini-button" data-id="{{item.id}}" data-status="received" loading="{{busyId === item.id}}" bindtap="updateStatus">确认已收款</button></view>
     </view>
   </view>
   <view wx:else class="empty-state"><view class="empty-title">已经平账</view><view class="muted">现在没有人需要转账。</view></view>

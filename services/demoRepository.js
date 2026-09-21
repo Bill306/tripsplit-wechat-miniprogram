@@ -214,7 +214,8 @@ async function previewSettlement(tripId) {
   const members = allTripMembers(state, tripId)
   const summary = summarizeLedger(members, tripExpenses(state, tripId))
   const names = Object.fromEntries(members.map((member) => [member.id, member.displayName]))
-  return { status: 'preview', ledgerRevision: trip.ledgerRevision, summary, transfers: buildSettlementTransfers(summary).map((transfer, index) => ({ ...transfer, id: `preview_${index}`, fromName: names[transfer.fromMemberId], toName: names[transfer.toMemberId] })) }
+  const current = getCurrentMember(state, tripId)
+  return { status: 'preview', ledgerRevision: trip.ledgerRevision, summary, currentMemberId: current && current.id, currentMemberRole: current && current.role, transfers: buildSettlementTransfers(summary).map((transfer, index) => ({ ...transfer, id: `preview_${index}`, fromName: names[transfer.fromMemberId], toName: names[transfer.toMemberId] })) }
 }
 
 async function startSettlement(tripId) {
@@ -237,7 +238,9 @@ async function getSettlement(tripId) {
   const state = load()
   const trip = state.trips.find((item) => item.id === tripId)
   if (!trip || !trip.latestSettlementId) return previewSettlement(tripId)
-  return clone(state.settlements.find((item) => item.id === trip.latestSettlementId))
+  const settlement = clone(state.settlements.find((item) => item.id === trip.latestSettlementId))
+  const current = getCurrentMember(state, tripId)
+  return { ...settlement, currentMemberId: current && current.id, currentMemberRole: current && current.role }
 }
 
 async function updateTransferStatus(input) {

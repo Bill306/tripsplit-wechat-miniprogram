@@ -296,21 +296,21 @@ async function deleteExpense(openid, input) {
 }
 
 async function settlementPreview(openid, tripId) {
-  await memberFor(openid, tripId)
+  const current = await memberFor(openid, tripId)
   const trip = (await db.collection(C.trips).doc(tripId).get()).data
   const data = await ledger(tripId)
   const names = Object.fromEntries(data.members.map((member) => [member._id, member.displayName]))
-  return { status: 'preview', ledgerRevision: trip.ledgerRevision, summary: data.summary, transfers: settle(data.summary).map((item, index) => ({ ...item, id: `preview_${index}`, fromName: names[item.fromMemberId], toName: names[item.toMemberId] })) }
+  return { status: 'preview', ledgerRevision: trip.ledgerRevision, summary: data.summary, currentMemberId: current._id, currentMemberRole: current.role, transfers: settle(data.summary).map((item, index) => ({ ...item, id: `preview_${index}`, fromName: names[item.fromMemberId], toName: names[item.toMemberId] })) }
 }
 
 async function settlementGet(openid, tripId) {
-  await memberFor(openid, tripId)
+  const current = await memberFor(openid, tripId)
   const trip = (await db.collection(C.trips).doc(tripId).get()).data
   if (!trip.latestSettlementId) return settlementPreview(openid, tripId)
   const settlement = (await db.collection(C.settlements).doc(trip.latestSettlementId).get()).data
   const [transfers, members] = await Promise.all([allWhere(C.transfers, { settlementId: settlement._id }), allWhere(C.members, { tripId })])
   const names = Object.fromEntries(members.map((member) => [member._id, member.displayName]))
-  return { ...publicDoc(settlement), transfers: transfers.map((item) => ({ ...publicDoc(item), fromName: names[item.fromMemberId], toName: names[item.toMemberId] })) }
+  return { ...publicDoc(settlement), currentMemberId: current._id, currentMemberRole: current.role, transfers: transfers.map((item) => ({ ...publicDoc(item), fromName: names[item.fromMemberId], toName: names[item.toMemberId] })) }
 }
 
 async function settlementStart(openid, tripId) {
@@ -342,12 +342,20 @@ async function transferUpdate(openid, input) {
   assert(transfer && transfer.settlementId === settlement._id, 'NOT_FOUND', '转账项不存在')
   if (input.status === 'paid') assert(transfer.status === 'pending' && member._id === transfer.fromMemberId, 'FORBIDDEN', '只有付款方可标记已支付')
   else if (input.status === 'received') assert(transfer.status === 'paid' && member._id === transfer.toMemberId, 'FORBIDDEN', '只有收款方可确认已收款')
+  else if (input.status === 'pending') assert(transfer.status === 'paid' && (member._id === transfer.fromMemberId || member.role === 'owner'), 'FORBIDDEN', '只有付款方或创建者可撤销已支付')
   else assert(false, 'VALIDATION_ERROR', '状态转换不合法')
   const transaction = await db.startTransaction()
   try {
     const latest = (await transaction.collection(C.transfers).doc(input.transferId).get()).data
     assert(latest.status === transfer.status, 'REVISION_CONFLICT', '转账状态已变化')
-    await transaction.collection(C.transfers).doc(input.transferId).update({ data: { status: input.status, [input.status === 'paid' ? 'paidAt' : 'receivedAt']: iso() } })
+    const changedAt = iso()
+    const transferPatch = input.status === 'paid'
+      ? { status: 'paid', paidAt: changedAt }
+      : input.status === 'received'
+        ? { status: 'received', receivedAt: changedAt }
+        : { status: 'pending', paidAt: null }
+    await transaction.collection(C.transfers).doc(input.transferId).update({ data: transferPatch })
+    await transaction.collection(C.audits).add({ data: { tripId: settlement.tripId, entityType: 'settlementTransfer', entityId: input.transferId, action: `transfer_${input.status}`, actorUserId: openid, summary: `转账状态 ${transfer.status} -> ${input.status}`, createdAt: changedAt } })
     if (input.status === 'received') {
       const remaining = await transaction.collection(C.transfers).where({ settlementId: settlement._id, status: command.neq('received') }).get()
       const onlyCurrentRemains = remaining.data.every((item) => item._id === input.transferId)
