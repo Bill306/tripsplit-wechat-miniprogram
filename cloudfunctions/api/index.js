@@ -88,7 +88,7 @@ async function ledger(tripId) {
   const [members, expenses, shares] = await Promise.all([
     allWhere(C.members, { tripId }),
     allWhere(C.expenses, { tripId, deletedAt: command.eq(null) }),
-    allWhere(C.expenseShares, { tripId }),
+    allWhere(C.expenseShares, { tripId, deletedAt: command.eq(null) }),
   ])
   const liveExpenseIds = new Set(expenses.map((expense) => expense._id))
   const liveShares = shares.filter((share) => liveExpenseIds.has(share.expenseId))
@@ -154,11 +154,80 @@ async function createExpense(openid, input) {
     assert(['active', 'needs_settlement', 'settled'].includes(latestTrip.status), 'SETTLEMENT_LOCKED', '当前结算状态不允许改账')
     const createdAt = iso()
     const expenseResult = await transaction.collection(C.expenses).add({ data: { tripId: input.tripId, payerMemberId: input.payerMemberId, amountFen: input.amountFen, category: input.category || 'other', note: String(input.note || '').slice(0, 100), spentAt: input.spentAt || createdAt, splitMode: input.splitMode || 'equal', revision: 1, clientRequestId: input.clientRequestId, createdByUserId: openid, updatedByUserId: openid, deletedAt: null, createdAt, updatedAt: createdAt } })
-    for (const share of shares) await transaction.collection(C.expenseShares).add({ data: { ...share, tripId: input.tripId, expenseId: expenseResult._id } })
+    for (const share of shares) await transaction.collection(C.expenseShares).add({ data: { ...share, tripId: input.tripId, expenseId: expenseResult._id, deletedAt: null } })
     await transaction.collection(C.trips).doc(input.tripId).update({ data: { ledgerRevision: command.inc(1), status: 'needs_settlement', activeSettlementId: null, updatedAt: createdAt } })
     await transaction.collection(C.audits).add({ data: { tripId: input.tripId, entityType: 'expense', entityId: expenseResult._id, action: 'created', actorUserId: openid, summary: `新增账单 ${input.amountFen} 分`, createdAt } })
     await transaction.commit()
     return { id: expenseResult._id, createdByMemberId: actor._id }
+  } catch (error) { await transaction.rollback(); throw error }
+}
+
+async function getExpense(openid, expenseId) {
+  const expenseResult = await db.collection(C.expenses).doc(expenseId).get()
+  const expense = expenseResult.data
+  assert(expense && !expense.deletedAt, 'NOT_FOUND', '账单不存在')
+  await memberFor(openid, expense.tripId)
+  const [shares, members] = await Promise.all([
+    allWhere(C.expenseShares, { expenseId, deletedAt: command.eq(null) }),
+    allWhere(C.members, { tripId: expense.tripId }),
+  ])
+  return {
+    ...publicDoc(expense),
+    members: members.map(publicDoc),
+    shares: Object.fromEntries(shares.map((share) => [share.memberId, share.amountFen])),
+    shareUnits: Object.fromEntries(shares.map((share) => [share.memberId, share.shareUnits])),
+  }
+}
+
+async function updateExpense(openid, input) {
+  const expenseResult = await db.collection(C.expenses).doc(input.expenseId).get()
+  const expense = expenseResult.data
+  assert(expense && !expense.deletedAt, 'NOT_FOUND', '账单不存在')
+  const actor = await memberFor(openid, expense.tripId)
+  assert(actor.role === 'owner' || expense.createdByUserId === openid, 'FORBIDDEN', '你无权编辑这笔账单')
+  assert(expense.revision === input.expectedRevision, 'REVISION_CONFLICT', '账单已被修改，请刷新后重试', publicDoc(expense))
+  const trip = (await db.collection(C.trips).doc(expense.tripId).get()).data
+  assert(['active', 'needs_settlement'].includes(trip.status), 'SETTLEMENT_LOCKED', '当前结算状态不允许改账')
+  const members = await allWhere(C.members, { tripId: expense.tripId, status: 'active' })
+  const selected = members.filter((member) => input.participantMemberIds.includes(member._id))
+  assert(selected.length === input.participantMemberIds.length, 'VALIDATION_ERROR', '参与人不合法')
+  assert(members.some((member) => member._id === input.payerMemberId), 'VALIDATION_ERROR', '付款人不合法')
+  const shares = splitAmount(input.amountFen, selected, input.splitMode, input.units || {})
+  const oldShares = await allWhere(C.expenseShares, { expenseId: expense._id, deletedAt: command.eq(null) })
+  const transaction = await db.startTransaction()
+  try {
+    const latest = (await transaction.collection(C.expenses).doc(expense._id).get()).data
+    assert(latest.revision === input.expectedRevision && !latest.deletedAt, 'REVISION_CONFLICT', '账单已被修改，请刷新后重试')
+    const updatedAt = iso()
+    await transaction.collection(C.expenses).doc(expense._id).update({ data: { payerMemberId: input.payerMemberId, amountFen: input.amountFen, category: input.category || 'other', note: String(input.note || '').slice(0, 100), spentAt: input.spentAt, splitMode: input.splitMode || 'equal', revision: command.inc(1), updatedByUserId: openid, updatedAt } })
+    for (const share of oldShares) await transaction.collection(C.expenseShares).doc(share._id).update({ data: { deletedAt: updatedAt } })
+    for (const share of shares) await transaction.collection(C.expenseShares).add({ data: { ...share, tripId: expense.tripId, expenseId: expense._id, deletedAt: null } })
+    await transaction.collection(C.trips).doc(expense.tripId).update({ data: { ledgerRevision: command.inc(1), status: 'needs_settlement', activeSettlementId: null, updatedAt } })
+    await transaction.collection(C.audits).add({ data: { tripId: expense.tripId, entityType: 'expense', entityId: expense._id, action: 'updated', actorUserId: openid, summary: `修改账单：${expense.amountFen} 分 -> ${input.amountFen} 分`, createdAt: updatedAt } })
+    await transaction.commit()
+    return getExpense(openid, expense._id)
+  } catch (error) { await transaction.rollback(); throw error }
+}
+
+async function deleteExpense(openid, input) {
+  const expenseResult = await db.collection(C.expenses).doc(input.expenseId).get()
+  const expense = expenseResult.data
+  assert(expense && !expense.deletedAt, 'NOT_FOUND', '账单不存在')
+  const actor = await memberFor(openid, expense.tripId)
+  assert(actor.role === 'owner' || expense.createdByUserId === openid, 'FORBIDDEN', '你无权删除这笔账单')
+  assert(expense.revision === input.expectedRevision, 'REVISION_CONFLICT', '账单已被修改，请刷新后重试')
+  const trip = (await db.collection(C.trips).doc(expense.tripId).get()).data
+  assert(['active', 'needs_settlement'].includes(trip.status), 'SETTLEMENT_LOCKED', '当前结算状态不允许删除账单')
+  const transaction = await db.startTransaction()
+  try {
+    const latest = (await transaction.collection(C.expenses).doc(expense._id).get()).data
+    assert(latest.revision === input.expectedRevision && !latest.deletedAt, 'REVISION_CONFLICT', '账单已被修改，请刷新后重试')
+    const deletedAt = iso()
+    await transaction.collection(C.expenses).doc(expense._id).update({ data: { deletedAt, revision: command.inc(1), updatedByUserId: openid, updatedAt: deletedAt } })
+    await transaction.collection(C.trips).doc(expense.tripId).update({ data: { ledgerRevision: command.inc(1), status: 'needs_settlement', activeSettlementId: null, updatedAt: deletedAt } })
+    await transaction.collection(C.audits).add({ data: { tripId: expense.tripId, entityType: 'expense', entityId: expense._id, action: 'deleted', actorUserId: openid, summary: `删除账单 ${expense.amountFen} 分`, createdAt: deletedAt } })
+    await transaction.commit()
+    return { deleted: true }
   } catch (error) { await transaction.rollback(); throw error }
 }
 
@@ -256,6 +325,9 @@ const actions = {
   'trip.get': (openid, payload) => db.collection(C.trips).doc(payload.tripId).get().then((result) => dashboard(openid, result.data)),
   'trip.create': createTrip,
   'expense.create': createExpense,
+  'expense.get': (openid, payload) => getExpense(openid, payload.expenseId),
+  'expense.update': updateExpense,
+  'expense.delete': deleteExpense,
   'settlement.preview': (openid, payload) => settlementPreview(openid, payload.tripId),
   'settlement.get': (openid, payload) => settlementGet(openid, payload.tripId),
   'settlement.start': (openid, payload) => settlementStart(openid, payload.tripId),

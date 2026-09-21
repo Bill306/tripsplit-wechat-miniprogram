@@ -1,0 +1,7 @@
+.expense-title { margin-top: 18rpx; font-size: 40rpx; font-weight: 800; }
+.expense-amount { margin-top: 20rpx; font-size: 72rpx; font-weight: 900; }
+.detail-card > view, .share-list > view { display: flex; justify-content: space-between; padding: 20rpx 0; border-bottom: 2rpx solid #eee9df; }
+.detail-card > view:last-child, .share-list > view:last-child { border-bottom: 0; }
+.detail-card text { color: #6e7c75; }
+.share-list { padding: 0 26rpx; background: #fffdf8; border: 2rpx solid #ddd7c9; border-radius: 24rpx; }
+.revision-note { margin-top: 28rpx; color: #7d8983; font-size: 23rpx; text-align: center; }

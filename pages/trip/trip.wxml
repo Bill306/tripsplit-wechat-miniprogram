@@ -11,7 +11,7 @@
   </scroll-view>
   <view class="section-title">最近账单</view>
   <view wx:if="{{trip.expenses.length}}" class="expense-list">
-    <view wx:for="{{trip.expenses}}" wx:key="id" class="expense-row">
+    <view wx:for="{{trip.expenses}}" wx:key="id" class="expense-row" data-id="{{item.id}}" bindtap="openExpense">
       <view class="expense-icon">{{item.categoryIcon}}</view><view class="expense-main"><view class="expense-note">{{item.note || item.categoryLabel}}</view><view class="expense-meta">{{item.payerName}} 垫付 · {{item.spentAtText}}</view></view><view class="expense-amount">{{item.amountText}}</view>
     </view>
   </view>

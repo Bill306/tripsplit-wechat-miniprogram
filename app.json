@@ -4,6 +4,7 @@
     "pages/trip-form/trip-form",
     "pages/trip/trip",
     "pages/expense-form/expense-form",
+    "pages/expense/expense",
     "pages/settlement/settlement",
     "pages/join/join"
   ],

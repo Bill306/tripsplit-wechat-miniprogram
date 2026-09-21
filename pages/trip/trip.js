@@ -16,6 +16,7 @@ Page({
     }
   },
   addExpense() { wx.navigateTo({ url: `/pages/expense-form/expense-form?tripId=${this.data.id}` }) },
+  openExpense(event) { wx.navigateTo({ url: `/pages/expense/expense?id=${event.currentTarget.dataset.id}` }) },
   openSettlement() { wx.navigateTo({ url: `/pages/settlement/settlement?tripId=${this.data.id}` }) },
   async prepareInvite() {
     try {
