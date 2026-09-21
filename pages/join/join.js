@@ -1,8 +1,16 @@
 const repository = require('../../services/repository')
 
 Page({
-  data: { inviteId: '', displayName: '', submitting: false, error: '' },
-  onLoad(options) { this.setData({ inviteId: options.inviteId || '', error: options.inviteId ? '' : '邀请链接不完整' }) },
+  data: { inviteId: '', invite: null, displayName: '', loading: true, submitting: false, error: '' },
+  onLoad(options) {
+    const inviteId = options.inviteId || ''
+    this.setData({ inviteId, error: inviteId ? '' : '邀请链接不完整', loading: Boolean(inviteId) })
+    if (inviteId) this.loadInvite(inviteId)
+  },
+  async loadInvite(inviteId) {
+    try { this.setData({ invite: await repository.previewInvite(inviteId), loading: false }) }
+    catch (error) { this.setData({ loading: false, error: error.message }) }
+  },
   updateName(event) { this.setData({ displayName: event.detail.value }) },
   async join() {
     if (!this.data.displayName.trim()) return wx.showToast({ title: '请填写行程昵称', icon: 'none' })

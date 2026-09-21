@@ -1,6 +1,6 @@
 <view class="page-shell">
-  <view class="join-stamp">🧭</view><view class="eyebrow">TRIP INVITATION</view><view class="page-title">加入这次旅行</view><view class="page-subtitle">加入后，你可以和同行伙伴一起查看和记录账单。</view>
+  <view class="join-stamp">🧭</view><view class="eyebrow">TRIP INVITATION</view><view class="page-title">{{invite ? invite.tripName : '加入这次旅行'}}</view><view class="page-subtitle" wx:if="{{invite}}">{{invite.ownerName}} 邀请你加入 · 已有 {{invite.memberCount}} 人<text wx:if="{{invite.destination}}"> · {{invite.destination}}</text></view><view class="page-subtitle" wx:else>加入后，你可以和同行伙伴一起查看和记录账单。</view>
   <view wx:if="{{error}}" class="demo-banner">{{error}}</view>
   <view class="field"><text class="field-label">你在这次行程里的名字</text><input class="field-input" maxlength="30" placeholder="例如：小明" value="{{displayName}}" bindinput="updateName"/></view>
-  <view class="fixed-actions"><button class="primary-button" loading="{{submitting}}" disabled="{{submitting || !inviteId}}" bindtap="join">确认加入</button></view>
+  <view class="fixed-actions"><button class="primary-button" loading="{{submitting || loading}}" disabled="{{submitting || loading || !invite}}" bindtap="join">确认加入</button></view>
 </view>

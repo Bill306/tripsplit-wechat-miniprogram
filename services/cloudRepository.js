@@ -32,5 +32,6 @@ module.exports = {
   startSettlement: (tripId) => call('settlement.start', { tripId }),
   updateTransferStatus: (input) => call('settlement.transfer.update', input),
   createInvite: (tripId) => call('invite.create', { tripId }),
+  previewInvite: (inviteId) => call('invite.preview', { inviteId }),
   joinTrip: (input) => call('invite.join', input),
 }

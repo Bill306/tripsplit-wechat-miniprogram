@@ -129,7 +129,7 @@ async function getExpense(expenseId) {
   const expense = state.expenses.find((item) => item.id === expenseId && !item.deletedAt)
   if (!expense) throw new Error('账单不存在')
   const members = allTripMembers(state, expense.tripId)
-  return { ...clone(expense), members: clone(members) }
+  return { ...clone(expense), members: clone(members), canEdit: true }
 }
 
 async function updateExpense(input) {
@@ -263,6 +263,7 @@ async function updateTransferStatus(input) {
 }
 
 async function createInvite() { throw new Error('多人邀请需先配置微信云开发') }
+async function previewInvite() { throw new Error('多人邀请需先配置微信云开发') }
 async function joinTrip() { throw new Error('多人邀请需先配置微信云开发') }
 
-module.exports = { archiveTrip, bootstrap, createExpense, createInvite, createOfflineMember, createTrip, deactivateMember, deleteExpense, getExpense, getSettlement, getTrip, joinTrip, listTrips, previewSettlement, restoreTrip, startSettlement, updateExpense, updateOfflineMember, updateTransferStatus, updateTrip }
+module.exports = { archiveTrip, bootstrap, createExpense, createInvite, createOfflineMember, createTrip, deactivateMember, deleteExpense, getExpense, getSettlement, getTrip, joinTrip, listTrips, previewInvite, previewSettlement, restoreTrip, startSettlement, updateExpense, updateOfflineMember, updateTransferStatus, updateTrip }

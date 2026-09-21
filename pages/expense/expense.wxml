@@ -3,5 +3,5 @@
   <view class="paper-card detail-card"><view><text>付款人</text><strong>{{expense.payerName}}</strong></view><view><text>消费日期</text><strong>{{expense.spentAtText}}</strong></view><view><text>分摊方式</text><strong>{{expense.splitMode === 'units' ? '按份数' : '均分'}}</strong></view></view>
   <view class="section-title">每人承担</view><view class="share-list"><view wx:for="{{expense.sharesView}}" wx:key="memberId"><text>{{item.name}}</text><strong>{{item.amountText}}</strong></view></view>
   <view class="revision-note">第 {{expense.revision}} 版 · 重要修改会重新计算结算方案</view>
-  <view class="fixed-actions"><button class="danger-button" loading="{{deleting}}" bindtap="remove">删除</button><button class="primary-button" bindtap="edit">编辑</button></view>
+  <view wx:if="{{expense.canEdit}}" class="fixed-actions"><button class="danger-button" loading="{{deleting}}" bindtap="remove">删除</button><button class="primary-button" bindtap="edit">编辑</button></view>
 </view>

@@ -115,10 +115,15 @@ async function bootstrap(openid) {
 }
 
 async function listTrips(openid) {
-  const memberships = await allWhere(C.members, { userId: openid })
+  const memberships = await allWhere(C.members, { userId: openid, status: 'active' })
   if (!memberships.length) return []
-  const result = await db.collection(C.trips).where({ _id: command.in(memberships.map((item) => item.tripId)) }).limit(20).get()
-  return Promise.all(result.data.map((trip) => dashboard(openid, trip)))
+  const tripIds = [...new Set(memberships.map((item) => item.tripId))]
+  const trips = []
+  for (let index = 0; index < tripIds.length; index += 10) {
+    const result = await db.collection(C.trips).where({ _id: command.in(tripIds.slice(index, index + 10)) }).limit(10).get()
+    trips.push(...result.data)
+  }
+  return Promise.all(trips.map((trip) => dashboard(openid, trip)))
 }
 
 async function createTrip(openid, input) {
@@ -202,6 +207,8 @@ async function deactivateMember(openid, input) {
 async function createExpense(openid, input) {
   const actor = await memberFor(openid, input.tripId)
   assert(typeof input.clientRequestId === 'string' && input.clientRequestId.length >= 8, 'VALIDATION_ERROR', '请求标识不合法')
+  assert(Array.isArray(input.participantMemberIds) && input.participantMemberIds.length > 0, 'VALIDATION_ERROR', '至少选择一名参与人')
+  assert(['equal', 'units'].includes(input.splitMode), 'VALIDATION_ERROR', '分摊方式不合法')
   const duplicate = await db.collection(C.expenses).where({ tripId: input.tripId, createdByUserId: openid, clientRequestId: input.clientRequestId }).limit(1).get()
   if (duplicate.data.length) return publicDoc(duplicate.data[0])
   const trip = (await db.collection(C.trips).doc(input.tripId).get()).data
@@ -230,7 +237,7 @@ async function getExpense(openid, expenseId) {
   const expenseResult = await db.collection(C.expenses).doc(expenseId).get()
   const expense = expenseResult.data
   assert(expense && !expense.deletedAt, 'NOT_FOUND', '账单不存在')
-  await memberFor(openid, expense.tripId)
+  const actor = await memberFor(openid, expense.tripId)
   const [shares, members] = await Promise.all([
     allWhere(C.expenseShares, { expenseId, deletedAt: command.eq(null) }),
     allWhere(C.members, { tripId: expense.tripId }),
@@ -240,6 +247,7 @@ async function getExpense(openid, expenseId) {
     members: members.map(publicDoc),
     shares: Object.fromEntries(shares.map((share) => [share.memberId, share.amountFen])),
     shareUnits: Object.fromEntries(shares.map((share) => [share.memberId, share.shareUnits])),
+    canEdit: actor.role === 'owner' || expense.createdByUserId === openid,
   }
 }
 
@@ -250,6 +258,8 @@ async function updateExpense(openid, input) {
   const actor = await memberFor(openid, expense.tripId)
   assert(actor.role === 'owner' || expense.createdByUserId === openid, 'FORBIDDEN', '你无权编辑这笔账单')
   assert(expense.revision === input.expectedRevision, 'REVISION_CONFLICT', '账单已被修改，请刷新后重试', publicDoc(expense))
+  assert(Array.isArray(input.participantMemberIds) && input.participantMemberIds.length > 0, 'VALIDATION_ERROR', '至少选择一名参与人')
+  assert(['equal', 'units'].includes(input.splitMode), 'VALIDATION_ERROR', '分摊方式不合法')
   const trip = (await db.collection(C.trips).doc(expense.tripId).get()).data
   assert(['active', 'needs_settlement'].includes(trip.status), 'SETTLEMENT_LOCKED', '当前结算状态不允许改账')
   const members = await allWhere(C.members, { tripId: expense.tripId, status: 'active' })
@@ -376,15 +386,40 @@ async function inviteCreate(openid, tripId) {
   return { inviteId, path: `/pages/join/join?inviteId=${inviteId}` }
 }
 
+async function invitePreview(openid, inviteId) {
+  const inviteResult = await db.collection(C.invites).where({ inviteId, status: 'active' }).limit(1).get()
+  const invite = inviteResult.data[0]
+  assert(invite && invite.expiresAt > iso() && invite.useCount < invite.maxUses, 'INVITE_INVALID', '邀请已失效')
+  const [tripResult, ownerResult, activeMembers] = await Promise.all([
+    db.collection(C.trips).doc(invite.tripId).get(),
+    db.collection(C.members).where({ tripId: invite.tripId, role: 'owner', status: 'active' }).limit(1).get(),
+    allWhere(C.members, { tripId: invite.tripId, status: 'active' }),
+  ])
+  const trip = tripResult.data
+  assert(trip && trip.status !== 'archived', 'INVITE_INVALID', '该行程暂不可加入')
+  return { tripId: trip._id, tripName: trip.name, destination: trip.destination || '', ownerName: ownerResult.data[0] ? ownerResult.data[0].displayName : '行程创建者', memberCount: activeMembers.length }
+}
+
 async function inviteJoin(openid, input) {
   const inviteResult = await db.collection(C.invites).where({ inviteId: input.inviteId, status: 'active' }).limit(1).get()
   const invite = inviteResult.data[0]
   assert(invite && invite.expiresAt > iso() && invite.useCount < invite.maxUses, 'INVITE_INVALID', '邀请已失效')
   const existing = await db.collection(C.members).where({ tripId: invite.tripId, userId: openid }).limit(1).get()
   if (existing.data.length) return { tripId: invite.tripId, memberId: existing.data[0]._id }
+  const displayName = String(input.displayName || '').trim()
+  assert(displayName && displayName.length <= 30, 'VALIDATION_ERROR', '昵称需为 1 至 30 字')
   const transaction = await db.startTransaction()
   try {
-    const memberResult = await transaction.collection(C.members).add({ data: { tripId: invite.tripId, userId: openid, displayName: String(input.displayName || '微信成员').slice(0, 30), role: 'member', status: 'active', createdAt: iso() } })
+    const latestInvite = (await transaction.collection(C.invites).doc(invite._id).get()).data
+    assert(latestInvite && latestInvite.status === 'active' && latestInvite.expiresAt > iso() && latestInvite.useCount < latestInvite.maxUses, 'INVITE_INVALID', '邀请已失效')
+    const latestExisting = await transaction.collection(C.members).where({ tripId: invite.tripId, userId: openid }).limit(1).get()
+    if (latestExisting.data.length) {
+      await transaction.rollback()
+      return { tripId: invite.tripId, memberId: latestExisting.data[0]._id }
+    }
+    const activeMembers = await transaction.collection(C.members).where({ tripId: invite.tripId, status: 'active' }).limit(20).get()
+    assert(activeMembers.data.length < 20, 'VALIDATION_ERROR', '行程成员已满')
+    const memberResult = await transaction.collection(C.members).add({ data: { tripId: invite.tripId, userId: openid, displayName, role: 'member', status: 'active', createdAt: iso() } })
     await transaction.collection(C.invites).doc(invite._id).update({ data: { useCount: command.inc(1) } })
     await transaction.commit()
     return { tripId: invite.tripId, memberId: memberResult._id }
@@ -411,6 +446,7 @@ const actions = {
   'settlement.start': (openid, payload) => settlementStart(openid, payload.tripId),
   'settlement.transfer.update': transferUpdate,
   'invite.create': (openid, payload) => inviteCreate(openid, payload.tripId),
+  'invite.preview': (openid, payload) => invitePreview(openid, payload.inviteId),
   'invite.join': inviteJoin,
 }
 
