@@ -6,16 +6,19 @@
   <view wx:if="{{mode === 'demo'}}" class="demo-banner">当前为本机演示模式；界面与计算可用，但多人共享需完成云开发配置。</view>
   <view wx:if="{{error}}" class="demo-banner">{{error}}</view>
   <view wx:if="{{trips.length}}" class="trip-list">
-    <view wx:for="{{trips}}" wx:key="id" class="paper-card trip-card" data-id="{{item.id}}" bindtap="openTrip">
+    <view wx:for="{{groups}}" wx:key="key" wx:for-item="group" class="trip-group">
+      <view class="group-title">{{group.title}} <text>{{group.trips.length}}</text></view>
+    <view wx:for="{{group.trips}}" wx:key="id" wx:for-item="trip" class="paper-card trip-card" data-id="{{trip.id}}" bindtap="openTrip">
       <view class="trip-card-head">
-        <view><view class="trip-name">{{item.name}}</view><view class="trip-meta">{{item.destination || '还没填目的地'}} · {{item.members.length}} 人</view></view>
-        <view class="status-chip">{{item.statusLabel}}</view>
+        <view><view class="trip-name">{{trip.name}}</view><view class="trip-meta">{{trip.destination || '还没填目的地'}} · {{trip.members.length}} 人</view></view>
+        <view class="status-chip">{{trip.statusLabel}}</view>
       </view>
       <view class="ticket-line"></view>
       <view class="trip-metrics">
-        <view><text class="metric-label">总消费</text><text class="metric-value">{{item.totalAmount}}</text></view>
-        <view class="metric-right"><text class="metric-label">{{item.myNetLabel}}</text><text class="metric-value {{item.myNetClass}}">{{item.myNetAmount}}</text></view>
+        <view><text class="metric-label">总消费</text><text class="metric-value">{{trip.totalAmount}}</text></view>
+        <view class="metric-right"><text class="metric-label">{{trip.myNetLabel}}</text><text class="metric-value {{trip.myNetClass}}">{{trip.myNetAmount}}</text></view>
       </view>
+    </view>
     </view>
   </view>
   <view wx:elif="{{!loading}}" class="empty-state">

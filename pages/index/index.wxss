@@ -1,6 +1,9 @@
 .home-shell { padding-top: 54rpx; }
 .brand-mark { display: flex; align-items: center; justify-content: center; width: 72rpx; height: 72rpx; margin-bottom: 28rpx; background: #17362e; border-radius: 20rpx 20rpx 20rpx 4rpx; color: #fffdf8; font-size: 26rpx; font-weight: 900; }
 .trip-list { margin-top: 42rpx; }
+.trip-group { margin-top: 30rpx; }
+.group-title { display: flex; align-items: center; gap: 10rpx; font-size: 28rpx; font-weight: 800; }
+.group-title text { display: inline-flex; align-items: center; justify-content: center; min-width: 38rpx; height: 38rpx; background: #e1ebe6; border-radius: 20rpx; color: #1f6b57; font-size: 20rpx; }
 .trip-card { position: relative; overflow: hidden; }
 .trip-card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 10rpx; background: #f26b4b; }
 .trip-card-head, .trip-metrics { display: flex; align-items: flex-start; justify-content: space-between; }
