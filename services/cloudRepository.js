@@ -12,6 +12,13 @@ function call(action, payload = {}) {
   })
 }
 
+function uploadAvatar(tempFilePath) {
+  const suffix = String(tempFilePath || '').match(/\.(png|jpe?g|webp)$/i)
+  const extension = suffix ? suffix[1].toLowerCase().replace('jpeg', 'jpg') : 'jpg'
+  const cloudPath = `avatars/${Date.now()}-${Math.random().toString(36).slice(2, 10)}.${extension}`
+  return wx.cloud.uploadFile({ cloudPath, filePath: tempFilePath }).then(({ fileID }) => fileID)
+}
+
 module.exports = {
   bootstrap: () => call('bootstrap'),
   listTrips: () => call('trip.list'),
@@ -25,6 +32,8 @@ module.exports = {
   deactivateMember: (memberId) => call('member.deactivate', { memberId }),
   removeMember: (memberId) => call('member.remove', { memberId }),
   transferOwner: (input) => call('member.transferOwner', input),
+  uploadAvatar,
+  updateMyAvatar: async (tripId, tempFilePath) => call('member.updateMyAvatar', { tripId, avatarUrl: await uploadAvatar(tempFilePath) }),
   createExpense: (input) => call('expense.create', input),
   getExpense: (expenseId) => call('expense.get', { expenseId }),
   updateExpense: (input) => call('expense.update', input),

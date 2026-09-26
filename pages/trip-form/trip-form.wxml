@@ -8,7 +8,7 @@
     <view class="field"><text class="field-label">开始日期</text><picker mode="date" value="{{startDate}}" data-field="startDate" bindchange="updateField"><view class="field-picker">{{startDate || '选择日期'}}</view></picker></view>
     <view class="field"><text class="field-label">结束日期</text><picker mode="date" value="{{endDate}}" data-field="endDate" bindchange="updateField"><view class="field-picker">{{endDate || '选择日期'}}</view></picker></view>
   </view>
-  <block wx:if="{{!id}}"><view class="field"><text class="field-label">你在行程里的名字</text><input class="field-input" value="{{ownerName}}" data-field="ownerName" bindinput="updateField"/></view>
+  <block wx:if="{{!id}}"><view class="field profile-field"><text class="field-label">你的头像</text><button class="avatar-select" open-type="chooseAvatar" bindchooseavatar="chooseAvatar"><image wx:if="{{avatarLocalPath}}" src="{{avatarLocalPath}}" mode="aspectFill"/><text wx:else>🐱</text><view>使用微信头像或上传</view></button></view><view class="field"><text class="field-label">你在行程里的名字</text><input class="field-input" value="{{ownerName}}" data-field="ownerName" bindinput="updateField"/></view>
   <view class="field"><text class="field-label">先加上同行伙伴（可选）</text><textarea class="field-textarea" placeholder="用逗号或换行分开，例如：小明，小红" value="{{companionsText}}" data-field="companionsText" bindinput="updateField"/></view></block>
   <view class="fixed-actions"><button wx:if="{{id && trip.status !== 'archived'}}" class="danger-button" bindtap="archive">归档</button><button class="primary-button" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submit">{{id ? '保存设置' : '创建行程'}}</button></view>
 </view>

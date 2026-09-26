@@ -120,6 +120,10 @@ test('cloud API supports a two-account shared ledger and enforces settlement per
   const memberA = trip.members.find((member) => member.userId === 'openid-a')
   const memberB = trip.members.find((member) => member.userId === 'openid-b')
   assert.ok(memberA && memberB)
+  await call('openid-a', 'member.updateMyAvatar', { tripId: created.id, avatarUrl: 'cloud://demo/avatar-a.jpg' })
+  const avatarTrip = await call('openid-a', 'trip.get', { tripId: created.id })
+  assert.equal(avatarTrip.members.find((member) => member.id === memberA.id).avatarUrl, 'cloud://demo/avatar-a.jpg')
+  assert.equal(avatarTrip.summary.find((member) => member.memberId === memberA.id).avatarUrl, 'cloud://demo/avatar-a.jpg')
 
   const expenseA = await call('openid-a', 'expense.create', {
     tripId: created.id, payerMemberId: memberA.id, amountFen: 300,

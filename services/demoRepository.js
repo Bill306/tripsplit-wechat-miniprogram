@@ -22,7 +22,8 @@ const getCurrentMember = (state, tripId) => state.members.find((member) => membe
 function buildDashboard(state, trip) {
   const members = allTripMembers(state, trip.id)
   const expenses = tripExpenses(state, trip.id)
-  const summary = summarizeLedger(members, expenses)
+  const memberAvatars = Object.fromEntries(members.map((member) => [member.id, member.avatarUrl || '']))
+  const summary = summarizeLedger(members, expenses).map((item) => ({ ...item, avatarUrl: memberAvatars[item.memberId] || '' }))
   const currentMember = getCurrentMember(state, trip.id)
   const mine = summary.find((item) => currentMember && item.memberId === currentMember.id)
   return {
@@ -87,7 +88,7 @@ async function createTrip(input) {
   const tripId = id('trip')
   const trip = { id: tripId, name: input.name.trim(), destination: (input.destination || '').trim(), startDate: input.startDate || '', endDate: input.endDate || '', ownerUserId: CURRENT_USER_ID, status: 'active', ledgerRevision: 0, createdAt, updatedAt: createdAt }
   state.trips.push(trip)
-  state.members.push({ id: id('member'), tripId, userId: CURRENT_USER_ID, displayName: ownerName, role: 'owner', status: 'active', createdAt })
+  state.members.push({ id: id('member'), tripId, userId: CURRENT_USER_ID, displayName: ownerName, avatarUrl: input.avatarUrl || '', role: 'owner', status: 'active', createdAt })
   ;(input.companions || []).filter(Boolean).forEach((displayName, index) => {
     state.members.push({ id: id('member'), tripId, userId: null, displayName, role: 'member', status: 'active', createdAt: new Date(Date.now() + index + 1).toISOString() })
   })
@@ -279,12 +280,25 @@ async function transferOwner(input) {
   return { ownerMemberId: target.id }
 }
 
+async function uploadAvatar(tempFilePath) { return tempFilePath }
+
+async function updateMyAvatar(tripId, tempFilePath) {
+  const state = load()
+  const member = getCurrentMember(state, tripId)
+  if (!member || member.status !== 'active') throw new Error('你不是该行程的活跃成员')
+  member.avatarUrl = tempFilePath
+  addAudit(state, tripId, 'member', member.id, 'avatar_updated', '更新个人头像')
+  save(state)
+  return clone(member)
+}
+
 async function previewSettlement(tripId) {
   const state = load()
   const trip = state.trips.find((item) => item.id === tripId)
   if (!trip) throw new Error('行程不存在')
   const members = allTripMembers(state, tripId)
-  const summary = summarizeLedger(members, tripExpenses(state, tripId))
+  const memberAvatars = Object.fromEntries(members.map((member) => [member.id, member.avatarUrl || '']))
+  const summary = summarizeLedger(members, tripExpenses(state, tripId)).map((item) => ({ ...item, avatarUrl: memberAvatars[item.memberId] || '' }))
   const names = Object.fromEntries(members.map((member) => [member.id, member.displayName]))
   const current = getCurrentMember(state, tripId)
   return { status: 'preview', ledgerRevision: trip.ledgerRevision, summary, currentMemberId: current && current.id, currentMemberRole: current && current.role, currentMemberStatus: current && current.status, transfers: buildSettlementTransfers(summary).map((transfer, index) => ({ ...transfer, id: `preview_${index}`, fromName: names[transfer.fromMemberId], toName: names[transfer.toMemberId] })) }
@@ -343,4 +357,4 @@ async function revokeInvite() { throw new Error('多人邀请需先配置微信�
 async function previewInvite() { throw new Error('多人邀请需先配置微信云开发') }
 async function joinTrip() { throw new Error('多人邀请需先配置微信云开发') }
 
-module.exports = { archiveTrip, bootstrap, createExpense, createInvite, createOfflineMember, createTrip, deactivateMember, deleteExpense, getActiveInvite, getExpense, getSettlement, getTrip, joinTrip, listTrips, previewInvite, previewSettlement, removeMember, restoreTrip, revokeInvite, startSettlement, transferOwner, updateExpense, updateOfflineMember, updateTransferStatus, updateTrip }
+module.exports = { archiveTrip, bootstrap, createExpense, createInvite, createOfflineMember, createTrip, deactivateMember, deleteExpense, getActiveInvite, getExpense, getSettlement, getTrip, joinTrip, listTrips, previewInvite, previewSettlement, removeMember, restoreTrip, revokeInvite, startSettlement, transferOwner, updateExpense, updateMyAvatar, updateOfflineMember, updateTransferStatus, updateTrip, uploadAvatar }

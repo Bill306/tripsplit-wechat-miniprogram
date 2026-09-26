@@ -4,9 +4,10 @@
   <view class="section-title">成员列表 · {{trip.members.length}}</view>
   <view class="member-list">
     <view wx:for="{{trip.members}}" wx:key="id" class="member-row {{item.status === 'inactive' ? 'inactive' : ''}}">
-      <view class="avatar">{{item.initial}}</view>
+      <button wx:if="{{item.isCurrent && item.status === 'active'}}" class="avatar avatar-button" open-type="chooseAvatar" bindchooseavatar="chooseAvatar" disabled="{{busy}}"><image wx:if="{{item.avatarUrl}}" src="{{item.avatarUrl}}" mode="aspectFill"/><text wx:else>{{item.initial}}</text><view class="avatar-edit">✎</view></button>
+      <view wx:else class="avatar"><image wx:if="{{item.avatarUrl}}" src="{{item.avatarUrl}}" mode="aspectFill"/><text wx:else>{{item.initial}}</text></view>
       <view wx:if="{{editingId === item.id}}" class="rename-box"><input value="{{editingName}}" bindinput="updateEditingName"/><button bindtap="saveRename">保存</button><button bindtap="cancelRename">取消</button></view>
-      <block wx:else><view class="member-main"><strong>{{item.displayName}}</strong><text>{{item.role === 'owner' ? '创建者' : (item.userId ? '微信成员' : '离线成员')}} · {{item.status === 'active' ? '活跃' : '已停用'}}</text></view><view wx:if="{{trip.canManage && item.role !== 'owner' && item.status === 'active'}}" class="member-actions"><button wx:if="{{item.userId === null}}" data-id="{{item.id}}" data-name="{{item.displayName}}" bindtap="startRename">改名</button><button wx:if="{{item.userId}}" data-id="{{item.id}}" data-name="{{item.displayName}}" bindtap="transferOwner">转让</button><button data-id="{{item.id}}" bindtap="remove">移除</button><button data-id="{{item.id}}" bindtap="deactivate">停用</button></view></block>
+      <block wx:else><view class="member-main"><strong>{{item.displayName}}</strong><text>{{item.role === 'owner' ? '创建者' : (item.userId ? '微信成员' : '离线成员')}} · {{item.status === 'active' ? '活跃' : '已停用'}}<text wx:if="{{item.isCurrent}}"> · 点击头像可更换</text></text></view><view wx:if="{{trip.canManage && item.role !== 'owner' && item.status === 'active'}}" class="member-actions"><button wx:if="{{item.userId === null}}" data-id="{{item.id}}" data-name="{{item.displayName}}" bindtap="startRename">改名</button><button wx:if="{{item.userId}}" data-id="{{item.id}}" data-name="{{item.displayName}}" bindtap="transferOwner">转让</button><button data-id="{{item.id}}" bindtap="remove">移除</button><button data-id="{{item.id}}" bindtap="deactivate">停用</button></view></block>
     </view>
   </view>
 </view>

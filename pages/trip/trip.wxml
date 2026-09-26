@@ -9,7 +9,7 @@
   </view>
   <view class="section-head"><view class="section-title">成员净额</view><button wx:if="{{trip.currentMemberRole === 'owner'}}" class="text-button" bindtap="manageMembers">管理成员</button></view>
   <scroll-view class="member-strip" scroll-x enhanced show-scrollbar="false">
-    <view wx:for="{{trip.summary}}" wx:key="memberId" class="member-pill"><view class="member-avatar">{{item.initial}}</view><view><text>{{item.displayName}}</text><text class="member-net {{item.netClass}}">{{item.netLabel}} {{item.netAmountText}}</text></view></view>
+    <view wx:for="{{trip.summary}}" wx:key="memberId" class="member-pill"><view class="member-avatar"><image wx:if="{{item.avatarUrl}}" src="{{item.avatarUrl}}" mode="aspectFill"/><text wx:else>{{item.initial}}</text></view><view><text>{{item.displayName}}</text><text class="member-net {{item.netClass}}">{{item.netLabel}} {{item.netAmountText}}</text></view></view>
   </scroll-view>
   <view class="section-title">最近账单</view>
   <view wx:if="{{trip.expenses.length}}" class="expense-list">

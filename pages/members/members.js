@@ -7,13 +7,19 @@ Page({
   async load() {
     try {
       const trip = await repository.getTrip(this.data.tripId)
-      trip.members = trip.members.map((member) => ({ ...member, initial: member.displayName.slice(0, 1) }))
+      trip.members = trip.members.map((member) => ({ ...member, initial: member.displayName.slice(0, 1), isCurrent: member.id === trip.currentMemberId }))
       trip.canManage = trip.currentMemberRole === 'owner' && trip.currentMemberStatus === 'active'
       this.setData({ trip })
     }
     catch (error) { wx.showToast({ title: error.message, icon: 'none' }) }
   },
   updateNewName(event) { this.setData({ newName: event.detail.value }) },
+  async chooseAvatar(event) {
+    this.setData({ busy: true })
+    try { await repository.updateMyAvatar(this.data.tripId, event.detail.avatarUrl); await this.load(); wx.showToast({ title: '头像已更新' }) }
+    catch (error) { wx.showToast({ title: error.message, icon: 'none' }) }
+    finally { this.setData({ busy: false }) }
+  },
   async add() {
     if (!this.data.newName.trim()) return
     this.setData({ busy: true })

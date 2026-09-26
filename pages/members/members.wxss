@@ -5,7 +5,10 @@
 .member-row { display: flex; align-items: center; min-height: 110rpx; padding: 18rpx 22rpx; border-bottom: 2rpx solid #eee9df; }
 .member-row:last-child { border-bottom: 0; }
 .member-row.inactive { opacity: .55; }
-.avatar { display: flex; align-items: center; justify-content: center; width: 64rpx; height: 64rpx; margin-right: 18rpx; background: #e1ebe6; border-radius: 50%; color: #1f6b57; font-weight: 900; }
+.avatar { position: relative; display: flex; flex: 0 0 64rpx; align-items: center; justify-content: center; width: 64rpx; height: 64rpx; margin: 0 18rpx 0 0; padding: 0; overflow: visible; background: #e1ebe6; border-radius: 50%; color: #1f6b57; font-weight: 900; line-height: 64rpx; }
+.avatar image { width: 64rpx; height: 64rpx; overflow: hidden; border-radius: 50%; }
+.avatar-button { border: 3rpx solid #f0bd43; }
+.avatar-edit { position: absolute; right: -8rpx; bottom: -6rpx; display: flex; align-items: center; justify-content: center; width: 28rpx; height: 28rpx; background: #0d6a51; border: 3rpx solid #fffaf0; border-radius: 50%; color: white; font-size: 17rpx; line-height: 28rpx; }
 .member-main { display: flex; flex: 1; flex-direction: column; gap: 6rpx; }
 .member-main text { color: #7d8983; font-size: 22rpx; }
 .member-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8rpx; max-width: 330rpx; }

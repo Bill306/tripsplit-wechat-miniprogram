@@ -3,7 +3,7 @@
   <view class="page-subtitle">基于第 {{settlement.ledgerRevision}} 版账本，转账金额与每人净额可相互核对。</view>
   <view class="illustration-banner settle-banner"><image src="/assets/images/cat-settlement-crew.jpg" mode="aspectFill"/><view class="tape-label">旅伴一起，把每笔回忆算清楚</view></view>
   <view class="section-title">成员余额</view>
-  <view class="balance-list"><view wx:for="{{settlement.summary}}" wx:key="memberId" class="balance-row"><view class="member-avatar">{{item.initial}}</view><text class="balance-name">{{item.displayName}}</text><text class="{{item.netClass}}">{{item.netLabel}} {{item.netText}}</text></view></view>
+  <view class="balance-list"><view wx:for="{{settlement.summary}}" wx:key="memberId" class="balance-row"><view class="member-avatar"><image wx:if="{{item.avatarUrl}}" src="{{item.avatarUrl}}" mode="aspectFill"/><text wx:else>{{item.initial}}</text></view><text class="balance-name">{{item.displayName}}</text><text class="{{item.netClass}}">{{item.netLabel}} {{item.netText}}</text></view></view>
   <view class="section-title">转账清单</view>
   <view wx:if="{{settlement.transfers.length}}">
     <view wx:for="{{settlement.transfers}}" wx:key="id" class="paper-card transfer-card">

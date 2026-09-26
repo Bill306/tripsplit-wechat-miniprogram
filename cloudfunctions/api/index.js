@@ -45,7 +45,7 @@ function splitAmount(amountFen, members, splitMode, units = {}) {
 }
 
 function summarize(members, expenses, shares) {
-  const summary = Object.fromEntries(members.map((member) => [member._id, { memberId: member._id, displayName: member.displayName, paidAmount: 0, owedAmount: 0, netAmount: 0 }]))
+  const summary = Object.fromEntries(members.map((member) => [member._id, { memberId: member._id, displayName: member.displayName, avatarUrl: member.avatarUrl || '', paidAmount: 0, owedAmount: 0, netAmount: 0 }]))
   expenses.forEach((expense) => { assert(summary[expense.payerMemberId], 'DATA_INTEGRITY', '付款人不存在'); summary[expense.payerMemberId].paidAmount += expense.amountFen })
   shares.forEach((share) => { assert(summary[share.memberId], 'DATA_INTEGRITY', '分摊成员不存在'); summary[share.memberId].owedAmount += share.amountFen })
   const result = Object.values(summary).map((item) => ({ ...item, netAmount: item.paidAmount - item.owedAmount }))
@@ -134,14 +134,16 @@ async function createTrip(openid, input) {
   assert(!input.endDate || /^\d{4}-\d{2}-\d{2}$/.test(input.endDate), 'VALIDATION_ERROR', '结束日期不合法')
   assert(!input.startDate || !input.endDate || input.endDate >= input.startDate, 'VALIDATION_ERROR', '结束日期不能早于开始日期')
   const ownerName = String(input.ownerName || '微信用户').trim()
+  const avatarUrl = String(input.avatarUrl || '')
   assert(ownerName && ownerName.length <= 30, 'VALIDATION_ERROR', '行程昵称需为 1 至 30 字')
+  assert(!avatarUrl || (avatarUrl.startsWith('cloud://') && avatarUrl.length <= 500), 'VALIDATION_ERROR', '头像地址不合法')
   const companions = Array.isArray(input.companions) ? input.companions.map((name) => String(name).trim()).filter(Boolean).slice(0, 19) : []
   assert(companions.every((name) => name.length <= 30), 'VALIDATION_ERROR', '成员名称最多 30 字')
   const transaction = await db.startTransaction()
   try {
     const createdAt = iso()
     const tripResult = await transaction.collection(C.trips).add({ data: { name: input.name.trim(), destination: String(input.destination || '').trim(), startDate: input.startDate || '', endDate: input.endDate || '', ownerUserId: openid, status: 'active', ledgerRevision: 0, activeSettlementId: null, latestSettlementId: null, createdAt, updatedAt: createdAt } })
-    await transaction.collection(C.members).add({ data: { tripId: tripResult._id, userId: openid, displayName: ownerName, role: 'owner', status: 'active', createdAt } })
+    await transaction.collection(C.members).add({ data: { tripId: tripResult._id, userId: openid, displayName: ownerName, avatarUrl, role: 'owner', status: 'active', createdAt } })
     for (let index = 0; index < companions.length; index += 1) await transaction.collection(C.members).add({ data: { tripId: tripResult._id, userId: null, displayName: companions[index], role: 'member', status: 'active', createdAt: new Date(Date.now() + index + 1).toISOString() } })
     await transaction.commit()
     return { id: tripResult._id }
@@ -208,6 +210,16 @@ async function updateOfflineMember(openid, input) {
   await db.collection(C.members).doc(target._id).update({ data: { displayName: name } })
   await db.collection(C.audits).add({ data: { tripId: target.tripId, entityType: 'member', entityId: target._id, action: 'offline_member_renamed', actorUserId: openid, summary: `成员改名：${target.displayName} -> ${name}`, createdAt: iso() } })
   return { ...publicDoc(target), displayName: name }
+}
+
+async function updateMyAvatar(openid, input) {
+  const member = await memberFor(openid, input.tripId)
+  const avatarUrl = String(input.avatarUrl || '')
+  assert(avatarUrl.startsWith('cloud://') && avatarUrl.length <= 500, 'VALIDATION_ERROR', '头像地址不合法')
+  const updatedAt = iso()
+  await db.collection(C.members).doc(member._id).update({ data: { avatarUrl, updatedAt } })
+  await db.collection(C.audits).add({ data: { tripId: input.tripId, entityType: 'member', entityId: member._id, action: 'avatar_updated', actorUserId: openid, summary: '更新个人头像', createdAt: updatedAt } })
+  return { ...publicDoc(member), avatarUrl, updatedAt }
 }
 
 async function deactivateMember(openid, input) {
@@ -528,7 +540,9 @@ async function inviteJoin(openid, input) {
   const existing = await db.collection(C.members).where({ tripId: invite.tripId, userId: openid }).limit(1).get()
   if (existing.data.length) return { tripId: invite.tripId, memberId: existing.data[0]._id }
   const displayName = String(input.displayName || '').trim()
+  const avatarUrl = String(input.avatarUrl || '')
   assert(displayName && displayName.length <= 30, 'VALIDATION_ERROR', '昵称需为 1 至 30 字')
+  assert(!avatarUrl || (avatarUrl.startsWith('cloud://') && avatarUrl.length <= 500), 'VALIDATION_ERROR', '头像地址不合法')
   const transaction = await db.startTransaction()
   try {
     const latestInvite = (await transaction.collection(C.invites).doc(invite._id).get()).data
@@ -542,7 +556,7 @@ async function inviteJoin(openid, input) {
     }
     const activeMembers = await transaction.collection(C.members).where({ tripId: invite.tripId, status: 'active' }).limit(20).get()
     assert(activeMembers.data.length < 20, 'VALIDATION_ERROR', '行程成员已满')
-    const memberResult = await transaction.collection(C.members).add({ data: { tripId: invite.tripId, userId: openid, displayName, role: 'member', status: 'active', createdAt: iso() } })
+    const memberResult = await transaction.collection(C.members).add({ data: { tripId: invite.tripId, userId: openid, displayName, avatarUrl, role: 'member', status: 'active', createdAt: iso() } })
     await transaction.collection(C.invites).doc(invite._id).update({ data: { useCount: command.inc(1) } })
     await transaction.commit()
     return { tripId: invite.tripId, memberId: memberResult._id }
@@ -559,6 +573,7 @@ const actions = {
   'trip.restore': (openid, payload) => restoreTrip(openid, payload.tripId),
   'member.addOffline': createOfflineMember,
   'member.updateOffline': updateOfflineMember,
+  'member.updateMyAvatar': updateMyAvatar,
   'member.deactivate': deactivateMember,
   'member.remove': removeMember,
   'member.transferOwner': transferOwner,

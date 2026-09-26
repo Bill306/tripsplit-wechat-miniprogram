@@ -37,6 +37,14 @@ test('creates an idempotent expense and updates the dashboard', async () => {
   assert.equal(dashboard.summary.reduce((sum, item) => sum + item.netAmount, 0), 0)
 })
 
+test('lets the current member update their avatar and exposes it in summaries', async () => {
+  const trip = await seedTrip()
+  await repository.updateMyAvatar(trip.id, 'wxfile://avatar.jpg')
+  const dashboard = await repository.getTrip(trip.id)
+  assert.equal(dashboard.members.find((member) => member.id === trip.currentMemberId).avatarUrl, 'wxfile://avatar.jpg')
+  assert.equal(dashboard.summary.find((member) => member.memberId === trip.currentMemberId).avatarUrl, 'wxfile://avatar.jpg')
+})
+
 test('edits an expense with optimistic revision and rejects stale writes', async () => {
   const trip = await seedTrip()
   const expense = await repository.createExpense({

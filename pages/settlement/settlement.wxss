@@ -6,6 +6,7 @@
 .balance-row { display: flex; align-items: center; min-height: 94rpx; padding: 18rpx 22rpx; border-bottom: 2rpx solid #eee9df; }
 .balance-row:last-child { border-bottom: 0; }
 .member-avatar { display: flex; align-items: center; justify-content: center; width: 58rpx; height: 58rpx; margin-right: 16rpx; background: #f8e8b8; border: 2rpx solid #d9b65e; border-radius: 50%; color: #315a4f; font-weight: 900; box-shadow: 0 4rpx 0 #e07156; }
+.member-avatar image { width: 100%; height: 100%; border-radius: 50%; }
 .balance-name { flex: 1; }
 .transfer-card { text-align: center; }
 .transfer-route { display: flex; align-items: center; justify-content: center; gap: 22rpx; font-size: 30rpx; }

@@ -1,7 +1,7 @@
 const repository = require('../../services/repository')
 
 Page({
-  data: { id: '', trip: null, name: '', destination: '', startDate: '', endDate: '', ownerName: 'Bill', companionsText: '', submitting: false },
+  data: { id: '', trip: null, name: '', destination: '', startDate: '', endDate: '', ownerName: 'Bill', avatarLocalPath: '', companionsText: '', submitting: false },
   async onLoad(options) {
     if (!options.id) return
     try {
@@ -11,17 +11,20 @@ Page({
     } catch (error) { wx.showToast({ title: error.message, icon: 'none' }) }
   },
   updateField(event) { this.setData({ [event.currentTarget.dataset.field]: event.detail.value }) },
+  chooseAvatar(event) { this.setData({ avatarLocalPath: event.detail.avatarUrl }) },
   async submit() {
     if (!this.data.name.trim()) return wx.showToast({ title: '请填写行程名称', icon: 'none' })
     if (this.data.endDate && this.data.startDate && this.data.endDate < this.data.startDate) return wx.showToast({ title: '结束日期不能早于开始日期', icon: 'none' })
     this.setData({ submitting: true })
     try {
+      const avatarUrl = this.data.avatarLocalPath ? await repository.uploadAvatar(this.data.avatarLocalPath) : ''
       const input = {
         name: this.data.name,
         destination: this.data.destination,
         startDate: this.data.startDate,
         endDate: this.data.endDate,
         ownerName: this.data.ownerName,
+        avatarUrl,
         companions: this.data.companionsText.split(/[,，\n]/).map((name) => name.trim()).filter(Boolean),
       }
       if (this.data.id) {
