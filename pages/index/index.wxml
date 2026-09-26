@@ -1,8 +1,14 @@
 <view class="page-shell home-shell">
-  <view class="brand-mark">TS</view>
-  <view class="eyebrow">TRAVEL LEDGER</view>
-  <view class="page-title">旅行中随手记，<br/>结束时不用算。</view>
-  <view class="page-subtitle">和朋友共享一本账，谁垫付、谁应付，一眼看清。</view>
+  <view class="brand-row">
+    <view class="brand-lockup"><view class="brand-mark">猫</view><view><view class="brand-name">TripSplit</view><view class="brand-caption">CAT TRAVEL LEDGER</view></view></view>
+    <view class="brand-tag">一起算清</view>
+  </view>
+  <view class="hero-card">
+    <image class="hero-image" src="/assets/images/tripsplit-cat-crew.jpg" mode="aspectFill"/>
+    <view class="hero-scrim"></view>
+    <view class="hero-copy"><view class="hero-kicker">旅伴之间，账也要轻松</view><view class="hero-title">旅行尽兴，<br/>回来不用算半天。</view></view>
+  </view>
+  <view class="page-subtitle home-subtitle">三只猫都能把账对明白。你们也可以：各自记账，最后一键分清。</view>
   <view wx:if="{{mode === 'demo'}}" class="demo-banner">当前为本机演示模式；界面与计算可用，但多人共享需完成云开发配置。</view>
   <view wx:if="{{error}}" class="demo-banner">{{error}}</view>
   <view wx:if="{{trips.length}}" class="trip-list">
@@ -10,7 +16,7 @@
       <view class="group-title">{{group.title}} <text>{{group.trips.length}}</text></view>
     <view wx:for="{{group.trips}}" wx:key="id" wx:for-item="trip" class="paper-card trip-card" data-id="{{trip.id}}" bindtap="openTrip">
       <view class="trip-card-head">
-        <view><view class="trip-name">{{trip.name}}</view><view class="trip-meta">{{trip.destination || '还没填目的地'}} · {{trip.members.length}} 人</view></view>
+        <view class="trip-identity"><view class="trip-stamp">旅</view><view><view class="trip-name">{{trip.name}}</view><view class="trip-meta">{{trip.destination || '还没填目的地'}} · {{trip.members.length}} 位旅伴</view></view></view>
         <view class="status-chip">{{trip.statusLabel}}</view>
       </view>
       <view class="ticket-line"></view>
@@ -22,7 +28,7 @@
     </view>
   </view>
   <view wx:elif="{{!loading}}" class="empty-state">
-    <view class="empty-icon">🧭</view><view class="empty-title">先建立第一次旅行</view><view class="muted">把同行伙伴和每笔费用放在一起。</view>
+    <view class="empty-icon">🐈‍⬛</view><view class="empty-title">猫咪还没出发</view><view class="muted">建一个行程，把同行伙伴和每笔费用放在一起。</view>
   </view>
-  <view class="fixed-actions"><button class="primary-button" bindtap="createTrip">+  创建新行程</button></view>
+  <view class="fixed-actions"><button class="primary-button" bindtap="createTrip"><text class="button-plus">＋</text> 创建新行程</button></view>
 </view>

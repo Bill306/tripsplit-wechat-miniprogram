@@ -1,18 +1,34 @@
-.home-shell { padding-top: 54rpx; }
-.brand-mark { display: flex; align-items: center; justify-content: center; width: 72rpx; height: 72rpx; margin-bottom: 28rpx; background: #17362e; border-radius: 20rpx 20rpx 20rpx 4rpx; color: #fffdf8; font-size: 26rpx; font-weight: 900; }
-.trip-list { margin-top: 42rpx; }
+.home-shell { padding-top: 30rpx; }
+.brand-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24rpx; }
+.brand-lockup { display: flex; align-items: center; gap: 16rpx; }
+.brand-mark { display: flex; align-items: center; justify-content: center; width: 64rpx; height: 64rpx; background: #182f2a; border: 2rpx solid #294b43; border-radius: 50% 50% 46% 46%; color: #f4c76b; font-family: "STKaiti", "KaiTi", serif; font-size: 27rpx; font-weight: 900; box-shadow: 0 7rpx 0 #d96846; }
+.brand-name { font-family: Georgia, "Songti SC", serif; font-size: 30rpx; font-weight: 900; letter-spacing: -.5rpx; }
+.brand-caption { margin-top: 2rpx; color: #718078; font-size: 16rpx; font-weight: 700; letter-spacing: 2rpx; }
+.brand-tag { padding: 11rpx 18rpx; background: #e7ded0; border-radius: 999rpx; color: #50615a; font-size: 20rpx; font-weight: 700; }
+.hero-card { position: relative; height: 430rpx; overflow: hidden; background: #1a2f2c; border-radius: 34rpx 34rpx 12rpx 34rpx; box-shadow: 0 20rpx 50rpx rgba(30, 45, 39, .18); }
+.hero-image { width: 100%; height: 100%; }
+.hero-scrim { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(16, 29, 27, .02) 34%, rgba(13, 27, 25, .86) 100%); }
+.hero-copy { position: absolute; right: 28rpx; bottom: 30rpx; left: 28rpx; color: #fff9ed; }
+.hero-kicker { margin-bottom: 8rpx; color: #f2bf62; font-size: 21rpx; font-weight: 800; letter-spacing: 2rpx; }
+.hero-title { font-family: Georgia, "Songti SC", serif; font-size: 44rpx; font-weight: 900; line-height: 1.18; letter-spacing: -1rpx; }
+.home-subtitle { margin: 24rpx 6rpx 0; color: #596a62; font-size: 25rpx; }
+.trip-list { margin-top: 34rpx; }
 .trip-group { margin-top: 30rpx; }
-.group-title { display: flex; align-items: center; gap: 10rpx; font-size: 28rpx; font-weight: 800; }
-.group-title text { display: inline-flex; align-items: center; justify-content: center; min-width: 38rpx; height: 38rpx; background: #e1ebe6; border-radius: 20rpx; color: #1f6b57; font-size: 20rpx; }
-.trip-card { position: relative; overflow: hidden; }
-.trip-card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 10rpx; background: #f26b4b; }
+.group-title { display: flex; align-items: center; gap: 10rpx; color: #293d37; font-family: Georgia, "Songti SC", serif; font-size: 29rpx; font-weight: 900; }
+.group-title::before { content: ""; width: 18rpx; height: 18rpx; background: #d96846; border-radius: 50% 50% 50% 10%; transform: rotate(-18deg); }
+.group-title text { display: inline-flex; align-items: center; justify-content: center; min-width: 38rpx; height: 38rpx; background: #dfe9e4; border-radius: 20rpx; color: #315f53; font-family: sans-serif; font-size: 20rpx; }
+.trip-card { position: relative; overflow: hidden; padding: 26rpx; }
+.trip-card::before { content: ""; position: absolute; right: -18rpx; bottom: -28rpx; width: 120rpx; height: 120rpx; background: rgba(217, 104, 70, .08); border-radius: 50%; }
 .trip-card-head, .trip-metrics { display: flex; align-items: flex-start; justify-content: space-between; }
+.trip-identity { display: flex; align-items: center; gap: 18rpx; }
+.trip-stamp { display: flex; align-items: center; justify-content: center; width: 62rpx; height: 62rpx; background: #243e37; border-radius: 18rpx 18rpx 6rpx 18rpx; color: #f4c76b; font-family: "STKaiti", "KaiTi", serif; font-size: 25rpx; font-weight: 900; }
 .trip-name { max-width: 390rpx; font-size: 34rpx; font-weight: 800; }
 .trip-meta { margin-top: 10rpx; color: #6e7c75; font-size: 24rpx; }
-.ticket-line { margin: 26rpx 0; border-top: 2rpx dashed #d8d2c4; }
+.ticket-line { margin: 24rpx 0; border-top: 2rpx dashed #cfc4b3; }
 .trip-metrics > view { display: flex; flex-direction: column; }
 .metric-right { text-align: right; }
 .metric-label { color: #6e7c75; font-size: 22rpx; }
 .metric-value { margin-top: 8rpx; font-size: 30rpx; font-weight: 800; }
-.empty-icon { font-size: 64rpx; }
+.empty-icon { font-size: 74rpx; filter: grayscale(.2); }
 .empty-title { margin: 18rpx 0 10rpx; font-size: 32rpx; font-weight: 800; }
+.button-plus { display: inline-flex; align-items: center; justify-content: center; width: 48rpx; height: 48rpx; margin-right: 10rpx; background: rgba(255,255,255,.14); border-radius: 50%; line-height: 48rpx; }

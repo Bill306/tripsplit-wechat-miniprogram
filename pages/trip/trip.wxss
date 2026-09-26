@@ -3,7 +3,8 @@
 .invite-row { display: flex; justify-content: flex-end; gap: 12rpx; margin-top: 14rpx; }
 .invite-button { min-height: 58rpx; margin: 0; padding: 0 22rpx; background: transparent; border: 2rpx solid #1f6b57; border-radius: 30rpx; color: #1f6b57; font-size: 23rpx; line-height: 56rpx; }
 .invite-button.danger-link { border-color: #b75a48; color: #b75a48; }
-.total-card { background: #17362e; border-color: #17362e; color: #fffdf8; }
+.total-card { position: relative; overflow: hidden; background: #203b35; border-color: #203b35; color: #fffaf0; }
+.total-card::after { content: "猫旅账"; position: absolute; right: -10rpx; top: 12rpx; color: rgba(244,199,107,.09); font-family: "STKaiti", "KaiTi", serif; font-size: 84rpx; font-weight: 900; transform: rotate(-8deg); }
 .total-card .muted { color: #b8c8c1; }
 .hero-amount { margin-top: 12rpx; font-size: 64rpx; font-weight: 900; letter-spacing: -2rpx; }
 .summary-row { display: flex; justify-content: space-between; margin-top: 32rpx; padding-top: 26rpx; border-top: 2rpx dashed rgba(255,255,255,.24); }
@@ -17,13 +18,13 @@
 .text-button { min-height: 60rpx; margin: 0; padding: 0 10rpx; background: transparent; color: #1f6b57; font-size: 24rpx; line-height: 60rpx; }
 .member-strip { width: 100%; white-space: nowrap; }
 .member-pill { display: inline-flex; align-items: center; gap: 16rpx; min-width: 270rpx; margin-right: 16rpx; padding: 20rpx; background: #fffdf8; border: 2rpx solid #ddd7c9; border-radius: 20rpx; }
-.member-avatar { display: flex; align-items: center; justify-content: center; width: 66rpx; height: 66rpx; background: #e1ebe6; border-radius: 50%; color: #1f6b57; font-weight: 900; }
+.member-avatar { display: flex; align-items: center; justify-content: center; width: 66rpx; height: 66rpx; background: #e6d7bd; border: 2rpx solid #c9b895; border-radius: 48% 48% 44% 44%; color: #315a4f; font-family: Georgia, serif; font-weight: 900; box-shadow: 0 5rpx 0 #d26b4c; }
 .member-pill > view:last-child { display: flex; flex-direction: column; }
 .member-net { margin-top: 6rpx; font-size: 22rpx; }
-.expense-list { overflow: hidden; background: #fffdf8; border: 2rpx solid #ddd7c9; border-radius: 24rpx; }
+.expense-list { overflow: hidden; background: #fffaf0; border: 2rpx solid #d8cdbb; border-radius: 28rpx 28rpx 10rpx 28rpx; box-shadow: 0 16rpx 34rpx rgba(41,52,46,.06); }
 .expense-row { display: flex; align-items: center; min-height: 112rpx; padding: 20rpx 24rpx; border-bottom: 2rpx solid #eee9df; }
 .expense-row:last-child { border-bottom: 0; }
-.expense-icon { display: flex; align-items: center; justify-content: center; width: 64rpx; height: 64rpx; margin-right: 18rpx; background: #f3eee3; border-radius: 18rpx; }
+.expense-icon { display: flex; align-items: center; justify-content: center; width: 64rpx; height: 64rpx; margin-right: 18rpx; background: #ede3d3; border-radius: 20rpx 20rpx 7rpx 20rpx; }
 .expense-main { flex: 1; min-width: 0; }
 .expense-note { overflow: hidden; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
 .expense-meta { margin-top: 6rpx; color: #7d8983; font-size: 22rpx; }

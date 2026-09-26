@@ -1,10 +1,10 @@
 .settle-head { display: flex; align-items: flex-start; gap: 20rpx; }
 .settle-head .page-title { flex: 1; }
 .settle-head .status-chip { margin-top: 16rpx; white-space: nowrap; }
-.balance-list { overflow: hidden; background: #fffdf8; border: 2rpx solid #ddd7c9; border-radius: 24rpx; }
+.balance-list { overflow: hidden; background: #fffaf0; border: 2rpx solid #d8cdbb; border-radius: 28rpx 28rpx 10rpx 28rpx; box-shadow: 0 14rpx 32rpx rgba(41,52,46,.06); }
 .balance-row { display: flex; align-items: center; min-height: 94rpx; padding: 18rpx 22rpx; border-bottom: 2rpx solid #eee9df; }
 .balance-row:last-child { border-bottom: 0; }
-.member-avatar { display: flex; align-items: center; justify-content: center; width: 58rpx; height: 58rpx; margin-right: 16rpx; background: #e1ebe6; border-radius: 50%; color: #1f6b57; font-weight: 900; }
+.member-avatar { display: flex; align-items: center; justify-content: center; width: 58rpx; height: 58rpx; margin-right: 16rpx; background: #e6d7bd; border: 2rpx solid #c9b895; border-radius: 48% 48% 44% 44%; color: #315a4f; font-weight: 900; box-shadow: 0 4rpx 0 #d26b4c; }
 .balance-name { flex: 1; }
 .transfer-card { text-align: center; }
 .transfer-route { display: flex; align-items: center; justify-content: center; gap: 22rpx; font-size: 30rpx; }
