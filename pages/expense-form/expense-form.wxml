@@ -1,5 +1,6 @@
 <view wx:if="{{trip}}" class="page-shell expense-shell">
   <view class="eyebrow">{{expenseId ? 'EDIT ENTRY' : 'QUICK ENTRY'}}</view><view class="page-title">{{expenseId ? '编辑账单' : '记一笔'}}</view><view class="page-subtitle">{{trip.name}}</view>
+  <view class="illustration-banner entry-banner"><image src="/assets/images/cat-ledger-cafe.jpg" mode="aspectFill"/><view class="tape-label">每一笔支出，都是旅程的一部分 🐾</view></view>
   <view class="amount-field"><text>¥</text><input type="digit" placeholder="0.00" value="{{amount}}" data-field="amount" bindinput="updateField" focus/></view>
   <view class="field"><text class="field-label">谁付的</text><picker mode="selector" range="{{trip.members}}" range-key="displayLabel" value="{{payerIndex}}" bindchange="changePayer"><view class="field-picker">{{trip.members[payerIndex].displayLabel}} ▾</view></picker></view>
   <view class="field"><text class="field-label">谁参与</text><checkbox-group bindchange="changeParticipants" class="member-grid">
@@ -12,5 +13,5 @@
   <view class="field"><text class="field-label">分类</text><view class="category-grid"><view wx:for="{{categories}}" wx:key="value" class="category-item {{category === item.value ? 'active' : ''}}" data-value="{{item.value}}" bindtap="chooseCategory"><text>{{item.icon}}</text><text>{{item.label}}</text></view></view></view>
   <view class="field"><text class="field-label">备注（可选）</text><input class="field-input" maxlength="100" placeholder="例如：洱海边的晚饭" value="{{note}}" data-field="note" bindinput="updateField"/></view>
   <view class="field"><text class="field-label">消费日期</text><picker mode="date" value="{{spentAt}}" data-field="spentAt" bindchange="updateField"><view class="field-picker">{{spentAt}}</view></picker></view>
-  <view class="fixed-actions"><button class="primary-button" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submit">{{expenseId ? '保存修改' : '保存账单'}}</button></view>
+  <view class="fixed-actions"><button class="primary-button" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submit">🐾 {{expenseId ? '保存修改' : '确认记账'}}</button></view>
 </view>

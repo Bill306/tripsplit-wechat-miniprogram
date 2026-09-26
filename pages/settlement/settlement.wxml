@@ -1,6 +1,7 @@
 <view wx:if="{{settlement}}" class="page-shell">
   <view class="eyebrow">SETTLEMENT</view><view class="settle-head"><view class="page-title">这样转，最清楚。</view><view class="status-chip">{{settlement.statusLabel}}</view></view>
   <view class="page-subtitle">基于第 {{settlement.ledgerRevision}} 版账本，转账金额与每人净额可相互核对。</view>
+  <view class="illustration-banner settle-banner"><image src="/assets/images/cat-settlement-crew.jpg" mode="aspectFill"/><view class="tape-label">旅伴一起，把每笔回忆算清楚</view></view>
   <view class="section-title">成员余额</view>
   <view class="balance-list"><view wx:for="{{settlement.summary}}" wx:key="memberId" class="balance-row"><view class="member-avatar">{{item.initial}}</view><text class="balance-name">{{item.displayName}}</text><text class="{{item.netClass}}">{{item.netLabel}} {{item.netText}}</text></view></view>
   <view class="section-title">转账清单</view>
@@ -12,5 +13,5 @@
     </view>
   </view>
   <view wx:else class="empty-state"><view class="empty-title">已经平账</view><view class="muted">现在没有人需要转账。</view></view>
-  <view wx:if="{{settlement.status === 'preview' && settlement.currentMemberRole === 'owner' && settlement.currentMemberStatus === 'active'}}" class="fixed-actions"><button class="primary-button" bindtap="start">发起结算</button></view>
+  <view wx:if="{{settlement.status === 'preview' && settlement.currentMemberRole === 'owner' && settlement.currentMemberStatus === 'active'}}" class="fixed-actions"><button class="primary-button" bindtap="start">🐾 一键生成结算方案</button></view>
 </view>

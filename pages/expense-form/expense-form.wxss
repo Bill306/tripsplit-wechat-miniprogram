@@ -1,8 +1,9 @@
-.amount-field { display: flex; align-items: center; margin: 38rpx 0; padding: 30rpx 28rpx; background: #203b35; border: 0; border-radius: 30rpx 30rpx 10rpx 30rpx; color: #fffaf0; box-shadow: 0 12rpx 0 #17312b; }
-.amount-field text { margin-right: 18rpx; font-size: 54rpx; font-weight: 800; }
+.entry-banner { height: 230rpx; }
+.amount-field { display: flex; align-items: center; margin: 30rpx 0; padding: 26rpx 28rpx; background: rgba(255,253,246,.97); border: 2rpx solid #decdaa; border-radius: 24rpx; color: #293931; box-shadow: 0 9rpx 20rpx rgba(73,55,29,.09); }
+.amount-field text { margin-right: 18rpx; color: #e4774d; font-size: 54rpx; font-weight: 800; }
 .amount-field input { flex: 1; height: 90rpx; font-size: 72rpx; font-weight: 900; }
 .member-grid { display: flex; flex-wrap: wrap; gap: 14rpx; }
-.check-chip { display: flex; align-items: center; min-height: 76rpx; padding: 0 20rpx; background: #fffaf0; border: 2rpx solid #d5c8b4; border-radius: 38rpx 38rpx 12rpx 38rpx; }
+.check-chip { display: flex; align-items: center; min-height: 76rpx; padding: 0 20rpx; background: #fffaf0; border: 2rpx solid #d5c8b4; border-radius: 38rpx; }
 .check-chip checkbox { transform: scale(.8); }
 .segment { display: flex; padding: 6rpx; background: #e7e2d7; border-radius: 20rpx; }
 .segment label { flex: 1; padding: 20rpx; border-radius: 16rpx; text-align: center; }
@@ -13,5 +14,5 @@
 .unit-row text:first-child { flex: 1; }
 .unit-row input { width: 110rpx; margin-right: 12rpx; padding: 10rpx; background: #f3eee3; border-radius: 12rpx; text-align: center; }
 .category-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14rpx; }
-.category-item { display: flex; flex-direction: column; align-items: center; gap: 8rpx; padding: 20rpx; background: #fffaf0; border: 2rpx solid #d5c8b4; border-radius: 20rpx 20rpx 7rpx 20rpx; }
-.category-item.active { border-color: #1f6b57; background: #e6efe9; color: #1f6b57; font-weight: 800; }
+.category-item { display: flex; flex-direction: column; align-items: center; gap: 8rpx; padding: 20rpx; background: #fffaf0; border: 2rpx solid #d5c8b4; border-radius: 18rpx; }
+.category-item.active { border-color: #e1ac32; background: #fff2be; color: #485035; font-weight: 800; box-shadow: 0 5rpx 0 #e3b746; }

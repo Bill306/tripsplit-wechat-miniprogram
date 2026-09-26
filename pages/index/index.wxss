@@ -1,16 +1,17 @@
 .home-shell { padding-top: 30rpx; }
 .brand-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24rpx; }
 .brand-lockup { display: flex; align-items: center; gap: 16rpx; }
-.brand-mark { display: flex; align-items: center; justify-content: center; width: 64rpx; height: 64rpx; background: #182f2a; border: 2rpx solid #294b43; border-radius: 50% 50% 46% 46%; color: #f4c76b; font-family: "STKaiti", "KaiTi", serif; font-size: 27rpx; font-weight: 900; box-shadow: 0 7rpx 0 #d96846; }
-.brand-name { font-family: Georgia, "Songti SC", serif; font-size: 30rpx; font-weight: 900; letter-spacing: -.5rpx; }
+.brand-mark { display: flex; align-items: center; justify-content: center; width: 64rpx; height: 64rpx; background: #fff5d8; border: 2rpx solid #e5b84c; border-radius: 50%; color: #e56d57; font-size: 30rpx; box-shadow: 0 6rpx 0 #e5b84c; }
+.brand-name { font-family: "STKaiti", "KaiTi", serif; font-size: 34rpx; font-weight: 900; letter-spacing: 1rpx; }
 .brand-caption { margin-top: 2rpx; color: #718078; font-size: 16rpx; font-weight: 700; letter-spacing: 2rpx; }
-.brand-tag { padding: 11rpx 18rpx; background: #e7ded0; border-radius: 999rpx; color: #50615a; font-size: 20rpx; font-weight: 700; }
-.hero-card { position: relative; height: 430rpx; overflow: hidden; background: #1a2f2c; border-radius: 34rpx 34rpx 12rpx 34rpx; box-shadow: 0 20rpx 50rpx rgba(30, 45, 39, .18); }
+.brand-tag { padding: 11rpx 18rpx; background: #f2c251; border-radius: 8rpx; color: #35483e; font-family: "STKaiti", "KaiTi", serif; font-size: 22rpx; font-weight: 800; transform: rotate(-2deg); }
+.hero-card { position: relative; height: 438rpx; overflow: hidden; background: #1a2f2c; border: 8rpx solid #fffaf0; border-radius: 28rpx; box-shadow: 0 18rpx 42rpx rgba(63,49,27,.2); }
 .hero-image { width: 100%; height: 100%; }
-.hero-scrim { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(16, 29, 27, .02) 34%, rgba(13, 27, 25, .86) 100%); }
+.hero-scrim { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(22,31,27,.01) 34%, rgba(19,42,35,.82) 100%); }
+.hero-note { position: absolute; top: 24rpx; left: 20rpx; padding: 16rpx 20rpx; background: rgba(255,248,225,.92); color: #283c34; font-family: "STKaiti", "KaiTi", serif; font-size: 23rpx; font-weight: 800; line-height: 1.35; box-shadow: 0 7rpx 18rpx rgba(44,37,24,.16); transform: rotate(-3deg); }
 .hero-copy { position: absolute; right: 28rpx; bottom: 30rpx; left: 28rpx; color: #fff9ed; }
-.hero-kicker { margin-bottom: 8rpx; color: #f2bf62; font-size: 21rpx; font-weight: 800; letter-spacing: 2rpx; }
-.hero-title { font-family: Georgia, "Songti SC", serif; font-size: 44rpx; font-weight: 900; line-height: 1.18; letter-spacing: -1rpx; }
+.hero-kicker { margin-bottom: 8rpx; color: #ffd468; font-size: 21rpx; font-weight: 900; letter-spacing: 1rpx; }
+.hero-title { font-family: "STKaiti", "KaiTi", serif; font-size: 46rpx; font-weight: 900; line-height: 1.16; }
 .home-subtitle { margin: 24rpx 6rpx 0; color: #596a62; font-size: 25rpx; }
 .trip-list { margin-top: 34rpx; }
 .trip-group { margin-top: 30rpx; }

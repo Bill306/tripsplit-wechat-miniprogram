@@ -1,6 +1,7 @@
 <view wx:if="{{trip}}" class="page-shell trip-shell">
   <view class="trip-heading"><view><view class="eyebrow">{{trip.destination || 'SHARED JOURNEY'}}</view><view class="page-title">{{trip.name}}</view></view><view class="status-chip">{{trip.statusLabel}}</view></view>
   <view wx:if="{{trip.currentMemberRole === 'owner' && trip.currentMemberStatus === 'active' && trip.status !== 'archived'}}" class="invite-row"><button class="invite-button" bindtap="editTrip">行程设置</button><button wx:if="{{!invitePath}}" class="invite-button" bindtap="prepareInvite">生成邀请</button><button wx:else class="invite-button" open-type="share">分享给同行伙伴</button><button wx:if="{{invitePath}}" class="invite-button danger-link" bindtap="revokeInvite">撤销</button></view>
+  <view class="trip-postcard"><image src="/assets/images/cat-lake-hero.jpg" mode="aspectFill"/><view class="postcard-copy">好的旅伴，<br/>让每一段旅程都更特别！</view></view>
   <view wx:if="{{trip.currentMemberStatus === 'inactive'}}" class="demo-banner">你已退出该行程，目前只能查看历史记录。</view>
   <view class="paper-card total-card">
     <view class="muted">本次总消费</view><view class="hero-amount">{{trip.totalAmount}}</view>

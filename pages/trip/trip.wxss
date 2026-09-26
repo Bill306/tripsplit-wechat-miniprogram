@@ -3,7 +3,10 @@
 .invite-row { display: flex; justify-content: flex-end; gap: 12rpx; margin-top: 14rpx; }
 .invite-button { min-height: 58rpx; margin: 0; padding: 0 22rpx; background: transparent; border: 2rpx solid #1f6b57; border-radius: 30rpx; color: #1f6b57; font-size: 23rpx; line-height: 56rpx; }
 .invite-button.danger-link { border-color: #b75a48; color: #b75a48; }
-.total-card { position: relative; overflow: hidden; background: #203b35; border-color: #203b35; color: #fffaf0; }
+.trip-postcard { position: relative; height: 250rpx; margin-top: 24rpx; overflow: hidden; border: 7rpx solid #fffaf0; border-radius: 24rpx; box-shadow: 0 12rpx 28rpx rgba(62,48,25,.15); }
+.trip-postcard image { width: 100%; height: 100%; }
+.postcard-copy { position: absolute; top: 18rpx; left: 18rpx; padding: 14rpx 18rpx; background: rgba(255,248,226,.92); color: #304239; font-family: "STKaiti", "KaiTi", serif; font-size: 22rpx; font-weight: 900; line-height: 1.35; transform: rotate(-2deg); }
+.total-card { position: relative; overflow: hidden; background: linear-gradient(145deg, #176c56, #0d533f); border-color: #176c56; color: #fffaf0; }
 .total-card::after { content: "猫旅账"; position: absolute; right: -10rpx; top: 12rpx; color: rgba(244,199,107,.09); font-family: "STKaiti", "KaiTi", serif; font-size: 84rpx; font-weight: 900; transform: rotate(-8deg); }
 .total-card .muted { color: #b8c8c1; }
 .hero-amount { margin-top: 12rpx; font-size: 64rpx; font-weight: 900; letter-spacing: -2rpx; }

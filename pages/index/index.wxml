@@ -1,14 +1,15 @@
 <view class="page-shell home-shell">
   <view class="brand-row">
-    <view class="brand-lockup"><view class="brand-mark">猫</view><view><view class="brand-name">TripSplit</view><view class="brand-caption">CAT TRAVEL LEDGER</view></view></view>
-    <view class="brand-tag">一起算清</view>
+    <view class="brand-lockup"><view class="brand-mark">🐾</view><view><view class="brand-name">喵喵记账</view><view class="brand-caption">TRIPSPLIT · 旅行共享账本</view></view></view>
+    <view class="brand-tag">去旅行</view>
   </view>
   <view class="hero-card">
-    <image class="hero-image" src="/assets/images/tripsplit-cat-crew.jpg" mode="aspectFill"/>
+    <image class="hero-image" src="/assets/images/cat-lake-hero.jpg" mode="aspectFill"/>
     <view class="hero-scrim"></view>
-    <view class="hero-copy"><view class="hero-kicker">旅伴之间，账也要轻松</view><view class="hero-title">旅行尽兴，<br/>回来不用算半天。</view></view>
+    <view class="hero-note">和喜欢的猫<br/>一起去看更大的世界～</view>
+    <view class="hero-copy"><view class="hero-kicker">多人旅行记账 · 一键最优结算</view><view class="hero-title">收集风景，<br/>也收集美好的回忆。</view></view>
   </view>
-  <view class="page-subtitle home-subtitle">三只猫都能把账对明白。你们也可以：各自记账，最后一键分清。</view>
+  <view class="page-subtitle home-subtitle">各自记一笔，共享同一本账。旅行结束时，再轻轻松松分清。</view>
   <view wx:if="{{mode === 'demo'}}" class="demo-banner">当前为本机演示模式；界面与计算可用，但多人共享需完成云开发配置。</view>
   <view wx:if="{{error}}" class="demo-banner">{{error}}</view>
   <view wx:if="{{trips.length}}" class="trip-list">
