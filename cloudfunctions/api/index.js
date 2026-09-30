@@ -600,7 +600,7 @@ exports.main = async (event) => {
     assert(handler, 'NOT_FOUND', '未知操作')
     return { ok: true, data: await handler(openid, event.payload || {}) }
   } catch (error) {
-    console.error('[TripSplit API]', event.action, error.code || error.message)
+    console.error('[喵喵旅账 API]', event.action, error.code || error.message)
     return { ok: false, error: { code: error.code || 'INTERNAL_ERROR', message: error.code ? error.message : '服务暂时不可用', details: error.details } }
   }
 }

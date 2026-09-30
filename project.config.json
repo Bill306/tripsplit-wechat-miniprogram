@@ -1,5 +1,6 @@
 {
   "compileType": "miniprogram",
+  "projectname": "喵喵旅账",
   "cloudfunctionRoot": "cloudfunctions/",
   "libVersion": "3.17.3",
   "packOptions": {

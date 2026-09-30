@@ -1,4 +1,4 @@
-# TripSplit MVP 技术设计
+# 喵喵旅账 MVP 技术设计
 
 日期：2026-09-21
 状态：Approved for implementation

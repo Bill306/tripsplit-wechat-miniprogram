@@ -1,4 +1,4 @@
-# TripSplit MVP UI 规范
+# 喵喵旅账 MVP UI 规范
 
 日期：2026-09-21
 状态：Approved for implementation
@@ -31,7 +31,7 @@ radius-lg    36rpx
 ### 首页
 
 ```text
-┌─ TripSplit                 ───────┐
+┌─ 喵喵旅账                  ───────┐
 │ 旅行中随手记，结束时不用算     │
 │                                         │
 │ ┌── 云南七日 · 待结算 ───────┐  │
