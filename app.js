@@ -6,7 +6,7 @@ App({
       if (repository.mode === 'cloud') {
         wx.cloud.init({ env: repository.envId, traceUser: true })
       }
-      await repository.bootstrap()
+      this.globalData.profile = await repository.bootstrap()
       this.globalData.ready = true
     } catch (error) {
       this.globalData.bootstrapError = error.message
@@ -16,5 +16,6 @@ App({
     ready: false,
     bootstrapError: '',
     repository,
+    profile: null,
   },
 })

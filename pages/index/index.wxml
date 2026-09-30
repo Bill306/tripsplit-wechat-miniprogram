@@ -1,7 +1,7 @@
 <view class="page-shell home-shell">
   <view class="brand-row">
     <view class="brand-lockup"><view class="brand-mark">🐾</view><view><view class="brand-name">喵喵旅账</view><view class="brand-caption">旅行共享账本</view></view></view>
-    <view class="brand-tag">去旅行</view>
+    <button class="profile-chip" bindtap="openProfile"><image src="{{profile.avatarUrl}}" mode="aspectFill"/><text>{{profile.displayName}}</text></button>
   </view>
   <view class="hero-card">
     <image class="hero-image" src="/assets/images/cat-lake-hero.jpg" mode="aspectFill"/>

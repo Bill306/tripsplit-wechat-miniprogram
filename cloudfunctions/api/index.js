@@ -112,8 +112,27 @@ async function dashboard(openid, trip) {
 
 async function bootstrap(openid) {
   const existing = await db.collection(C.users).where({ openid }).limit(1).get()
-  if (!existing.data.length) await db.collection(C.users).add({ data: { openid, displayName: '微信用户', avatarUrl: '', createdAt: iso() } })
-  return { userId: openid, mode: 'cloud' }
+  let profile = existing.data[0]
+  if (!profile) {
+    const createdAt = iso()
+    const result = await db.collection(C.users).add({ data: { openid, displayName: '', avatarUrl: '', createdAt } })
+    profile = { _id: result._id, openid, displayName: '', avatarUrl: '', createdAt }
+  }
+  return { userId: openid, mode: 'cloud', displayName: profile.displayName || '', avatarUrl: profile.avatarUrl || '', profileComplete: Boolean(profile.displayName && profile.avatarUrl) }
+}
+
+async function updateProfile(openid, input) {
+  const displayName = String(input.displayName || '').trim()
+  const avatarUrl = String(input.avatarUrl || '')
+  assert(displayName && displayName.length <= 30, 'VALIDATION_ERROR', '昵称需为 1 至 30 字')
+  assert(avatarUrl.startsWith('cloud://') && avatarUrl.length <= 500, 'VALIDATION_ERROR', '请选择有效的微信头像')
+  const existing = await db.collection(C.users).where({ openid }).limit(1).get()
+  const updatedAt = iso()
+  if (existing.data[0]) await db.collection(C.users).doc(existing.data[0]._id).update({ data: { displayName, avatarUrl, updatedAt } })
+  else await db.collection(C.users).add({ data: { openid, displayName, avatarUrl, createdAt: updatedAt, updatedAt } })
+  const memberships = await allWhere(C.members, { userId: openid })
+  for (const member of memberships) await db.collection(C.members).doc(member._id).update({ data: { displayName, avatarUrl, updatedAt } })
+  return { userId: openid, mode: 'cloud', displayName, avatarUrl, profileComplete: true, updatedAt }
 }
 
 async function listTrips(openid) {
@@ -133,8 +152,10 @@ async function createTrip(openid, input) {
   assert(!input.startDate || /^\d{4}-\d{2}-\d{2}$/.test(input.startDate), 'VALIDATION_ERROR', '开始日期不合法')
   assert(!input.endDate || /^\d{4}-\d{2}-\d{2}$/.test(input.endDate), 'VALIDATION_ERROR', '结束日期不合法')
   assert(!input.startDate || !input.endDate || input.endDate >= input.startDate, 'VALIDATION_ERROR', '结束日期不能早于开始日期')
-  const ownerName = String(input.ownerName || '微信用户').trim()
-  const avatarUrl = String(input.avatarUrl || '')
+  const profileResult = await db.collection(C.users).where({ openid }).limit(1).get()
+  const profile = profileResult.data[0] || {}
+  const ownerName = String(input.ownerName || profile.displayName || '微信用户').trim()
+  const avatarUrl = String(input.avatarUrl || profile.avatarUrl || '')
   assert(ownerName && ownerName.length <= 30, 'VALIDATION_ERROR', '行程昵称需为 1 至 30 字')
   assert(!avatarUrl || (avatarUrl.startsWith('cloud://') && avatarUrl.length <= 500), 'VALIDATION_ERROR', '头像地址不合法')
   const companions = Array.isArray(input.companions) ? input.companions.map((name) => String(name).trim()).filter(Boolean).slice(0, 19) : []
@@ -539,8 +560,10 @@ async function inviteJoin(openid, input) {
   assert(invite && invite.status === 'active' && invite.expiresAt > iso() && invite.useCount < invite.maxUses, 'INVITE_INVALID', '邀请已失效')
   const existing = await db.collection(C.members).where({ tripId: invite.tripId, userId: openid }).limit(1).get()
   if (existing.data.length) return { tripId: invite.tripId, memberId: existing.data[0]._id }
-  const displayName = String(input.displayName || '').trim()
-  const avatarUrl = String(input.avatarUrl || '')
+  const profileResult = await db.collection(C.users).where({ openid }).limit(1).get()
+  const profile = profileResult.data[0] || {}
+  const displayName = String(input.displayName || profile.displayName || '').trim()
+  const avatarUrl = String(input.avatarUrl || profile.avatarUrl || '')
   assert(displayName && displayName.length <= 30, 'VALIDATION_ERROR', '昵称需为 1 至 30 字')
   assert(!avatarUrl || (avatarUrl.startsWith('cloud://') && avatarUrl.length <= 500), 'VALIDATION_ERROR', '头像地址不合法')
   const transaction = await db.startTransaction()
@@ -565,6 +588,7 @@ async function inviteJoin(openid, input) {
 
 const actions = {
   bootstrap,
+  'user.updateProfile': updateProfile,
   'trip.list': listTrips,
   'trip.get': (openid, payload) => db.collection(C.trips).doc(payload.tripId).get().then((result) => dashboard(openid, result.data)),
   'trip.create': createTrip,

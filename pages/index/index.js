@@ -2,11 +2,13 @@ const repository = require('../../services/repository')
 const { decorateDashboard } = require('../../utils/view')
 
 Page({
-  data: { loading: true, trips: [], groups: [], error: '', mode: repository.mode },
+  data: { loading: true, trips: [], groups: [], profile: null, error: '', mode: repository.mode },
   onShow() { this.loadTrips() },
   async loadTrips() {
     this.setData({ loading: true, error: '' })
     try {
+      const profile = await repository.bootstrap()
+      if (!profile.profileComplete) return wx.reLaunch({ url: '/pages/profile/profile' })
       const trips = (await repository.listTrips()).map(decorateDashboard)
       const definitions = [
         { key: 'active', title: '进行中', statuses: ['active'] },
@@ -15,11 +17,12 @@ Page({
         { key: 'archived', title: '已归档', statuses: ['archived'] },
       ]
       const groups = definitions.map((group) => ({ ...group, trips: trips.filter((trip) => group.statuses.includes(trip.status)) })).filter((group) => group.trips.length)
-      this.setData({ trips, groups, loading: false })
+      this.setData({ profile, trips, groups, loading: false })
     } catch (error) {
       this.setData({ loading: false, error: error.message })
     }
   },
   createTrip() { wx.navigateTo({ url: '/pages/trip-form/trip-form' }) },
+  openProfile() { wx.navigateTo({ url: '/pages/profile/profile?edit=1' }) },
   openTrip(event) { wx.navigateTo({ url: `/pages/trip/trip?id=${event.currentTarget.dataset.id}` }) },
 })

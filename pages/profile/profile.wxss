@@ -1,0 +1,28 @@
+.profile-shell { padding: 34rpx 30rpx calc(56rpx + env(safe-area-inset-bottom)); }
+.profile-brand { display: flex; align-items: center; gap: 16rpx; }
+.brand-paw { display: flex; align-items: center; justify-content: center; width: 66rpx; height: 66rpx; background: #f9d66d; border: 2rpx solid #d9a930; border-radius: 50%; box-shadow: 0 6rpx 0 #d9a930; font-size: 30rpx; }
+.brand-title { font-family: "STKaiti", "KaiTi", serif; font-size: 36rpx; font-weight: 900; }
+.brand-subtitle { margin-top: 2rpx; color: #7b877f; font-size: 20rpx; letter-spacing: 2rpx; }
+.passport-card { position: relative; height: 340rpx; margin-top: 34rpx; overflow: hidden; border: 8rpx solid #fffaf0; border-radius: 30rpx 30rpx 12rpx 30rpx; box-shadow: 0 18rpx 38rpx rgba(51,43,29,.18); transform: rotate(-.6deg); }
+.passport-scene { width: 100%; height: 100%; }
+.passport-shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(20,41,34,.04), rgba(18,42,35,.78)); }
+.passport-copy { position: absolute; right: 28rpx; bottom: 28rpx; left: 28rpx; color: #fff9ec; }
+.passport-copy text { display: block; color: #f4ca59; font-size: 20rpx; font-weight: 900; letter-spacing: 4rpx; }
+.passport-copy strong { display: block; margin-top: 8rpx; font-family: "STKaiti", "KaiTi", serif; font-size: 42rpx; }
+.identity-sheet { position: relative; margin-top: 28rpx; padding: 34rpx 28rpx 30rpx; background: rgba(255,253,246,.97); border: 2rpx solid #ddcfb6; border-radius: 26rpx; box-shadow: 0 12rpx 28rpx rgba(68,57,37,.09); }
+.ticket-notch { position: absolute; top: 158rpx; width: 24rpx; height: 48rpx; background: #f7efdf; border: 2rpx solid #ddcfb6; border-radius: 0 30rpx 30rpx 0; }
+.ticket-notch-left { left: -3rpx; border-left: 0; }
+.ticket-notch-right { right: -3rpx; border-right: 0; border-radius: 30rpx 0 0 30rpx; }
+.identity-heading { font-family: "STKaiti", "KaiTi", serif; font-size: 36rpx; font-weight: 900; }
+.identity-tip { margin-top: 8rpx; color: #68776f; font-size: 23rpx; line-height: 1.55; }
+.avatar-picker { display: flex; align-items: center; width: 100%; min-height: 132rpx; margin: 26rpx 0 0; padding: 16rpx; background: #f7edcf; border: 2rpx dashed #c9a84c; border-radius: 22rpx; color: #20352f; line-height: 1.25; text-align: left; }
+.avatar-picker image, .avatar-placeholder { flex: none; width: 94rpx; height: 94rpx; border: 5rpx solid #fffaf0; border-radius: 50%; box-shadow: 0 6rpx 14rpx rgba(48,42,28,.14); }
+.avatar-placeholder { display: flex; align-items: center; justify-content: center; background: #ecd986; font-size: 48rpx; }
+.avatar-copy { flex: 1; margin-left: 18rpx; }
+.avatar-copy strong, .avatar-copy text { display: block; }
+.avatar-copy strong { font-size: 27rpx; }
+.avatar-copy text { margin-top: 8rpx; color: #6b756e; font-size: 20rpx; line-height: 1.4; }
+.edit-mark { display: flex; align-items: center; justify-content: center; width: 42rpx; height: 42rpx; background: #1d725a; border-radius: 50%; color: white; font-size: 22rpx; }
+.nickname-field { margin-top: 30rpx; padding-top: 26rpx; border-top: 2rpx dashed #d5c8b4; }
+.privacy-note { margin-top: 22rpx; color: #849087; font-size: 20rpx; text-align: center; }
+.continue-button { display: block; width: 100%; min-width: 100%; margin: 30rpx 0 0; padding: 0 24rpx; white-space: nowrap; }

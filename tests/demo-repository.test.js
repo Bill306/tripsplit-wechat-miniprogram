@@ -19,6 +19,19 @@ async function seedTrip() {
   return repository.getTrip(trip.id)
 }
 
+test('saves the confirmed WeChat profile and reuses it for new trips', async () => {
+  storage = {}
+  const initial = await repository.bootstrap()
+  assert.equal(initial.profileComplete, false)
+  const profile = await repository.updateProfile({ displayName: 'Bill', avatarUrl: 'wxfile://profile.jpg' })
+  assert.equal(profile.profileComplete, true)
+  const trip = await repository.createTrip({ name: '猫咪旅行', companions: [] })
+  const dashboard = await repository.getTrip(trip.id)
+  const current = dashboard.members.find((member) => member.id === dashboard.currentMemberId)
+  assert.equal(current.displayName, 'Bill')
+  assert.equal(current.avatarUrl, 'wxfile://profile.jpg')
+})
+
 test('creates an idempotent expense and updates the dashboard', async () => {
   const trip = await seedTrip()
   const input = {

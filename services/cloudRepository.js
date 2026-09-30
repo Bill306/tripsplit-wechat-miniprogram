@@ -21,6 +21,7 @@ function uploadAvatar(tempFilePath) {
 
 module.exports = {
   bootstrap: () => call('bootstrap'),
+  updateProfile: (input) => call('user.updateProfile', input),
   listTrips: () => call('trip.list'),
   getTrip: (tripId) => call('trip.get', { tripId }),
   createTrip: (input) => call('trip.create', input),

@@ -108,7 +108,10 @@ test('cloud API supports a two-account shared ledger and enforces settlement per
     return result.data
   }
 
-  await call('openid-a', 'bootstrap')
+  const emptyProfile = await call('openid-a', 'bootstrap')
+  assert.equal(emptyProfile.profileComplete, false)
+  const savedProfile = await call('openid-a', 'user.updateProfile', { displayName: 'A', avatarUrl: 'cloud://demo/profile-a.jpg' })
+  assert.equal(savedProfile.profileComplete, true)
   await call('openid-b', 'bootstrap')
   const created = await call('openid-a', 'trip.create', { name: '云南七日', ownerName: 'A', companions: [] })
   const invite = await call('openid-a', 'invite.create', { tripId: created.id })

@@ -10,7 +10,12 @@ const now = () => new Date().toISOString()
 const id = (prefix) => `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
 const load = () => {
   const state = wx.getStorageSync(STORAGE_KEY) || {}
-  return { trips: [], members: [], expenses: [], settlements: [], audits: [], ...state, audits: state.audits || [] }
+  return {
+    trips: [], members: [], expenses: [], settlements: [], audits: [],
+    ...state,
+    audits: state.audits || [],
+    profile: { userId: CURRENT_USER_ID, displayName: '', avatarUrl: '', profileComplete: false, ...(state.profile || {}) },
+  }
 }
 const save = (state) => wx.setStorageSync(STORAGE_KEY, state)
 const clone = (value) => JSON.parse(JSON.stringify(value))
@@ -62,8 +67,25 @@ function validateExpenseFields(input) {
 }
 
 async function bootstrap() {
-  save(load())
-  return { mode: 'demo', userId: CURRENT_USER_ID }
+  const state = load()
+  save(state)
+  return { mode: 'demo', ...clone(state.profile) }
+}
+
+async function updateProfile(input) {
+  const state = load()
+  const displayName = String(input.displayName || '').trim()
+  const avatarUrl = String(input.avatarUrl || '')
+  if (!displayName || displayName.length > 30) throw new Error('昵称需为 1 至 30 字')
+  if (!avatarUrl) throw new Error('请选择微信头像')
+  state.profile = { userId: CURRENT_USER_ID, displayName, avatarUrl, profileComplete: true, updatedAt: now() }
+  state.members.filter((member) => member.userId === CURRENT_USER_ID).forEach((member) => {
+    member.displayName = displayName
+    member.avatarUrl = avatarUrl
+    member.updatedAt = state.profile.updatedAt
+  })
+  save(state)
+  return clone(state.profile)
 }
 
 async function listTrips() {
@@ -82,13 +104,13 @@ async function createTrip(input) {
   const state = load()
   if (!input.name || !input.name.trim() || input.name.trim().length > 30) throw new Error('请填写 1 至 30 字的行程名称')
   if (input.startDate && input.endDate && input.endDate < input.startDate) throw new Error('结束日期不能早于开始日期')
-  const ownerName = String(input.ownerName || 'Bill').trim()
+  const ownerName = String(input.ownerName || state.profile.displayName || '微信用户').trim()
   if (!ownerName || ownerName.length > 30) throw new Error('行程昵称需为 1 至 30 字')
   const createdAt = now()
   const tripId = id('trip')
   const trip = { id: tripId, name: input.name.trim(), destination: (input.destination || '').trim(), startDate: input.startDate || '', endDate: input.endDate || '', ownerUserId: CURRENT_USER_ID, status: 'active', ledgerRevision: 0, createdAt, updatedAt: createdAt }
   state.trips.push(trip)
-  state.members.push({ id: id('member'), tripId, userId: CURRENT_USER_ID, displayName: ownerName, avatarUrl: input.avatarUrl || '', role: 'owner', status: 'active', createdAt })
+  state.members.push({ id: id('member'), tripId, userId: CURRENT_USER_ID, displayName: ownerName, avatarUrl: input.avatarUrl || state.profile.avatarUrl || '', role: 'owner', status: 'active', createdAt })
   ;(input.companions || []).filter(Boolean).forEach((displayName, index) => {
     state.members.push({ id: id('member'), tripId, userId: null, displayName, role: 'member', status: 'active', createdAt: new Date(Date.now() + index + 1).toISOString() })
   })
@@ -287,6 +309,8 @@ async function updateMyAvatar(tripId, tempFilePath) {
   const member = getCurrentMember(state, tripId)
   if (!member || member.status !== 'active') throw new Error('你不是该行程的活跃成员')
   member.avatarUrl = tempFilePath
+  state.profile.avatarUrl = tempFilePath
+  state.profile.profileComplete = Boolean(state.profile.displayName && tempFilePath)
   addAudit(state, tripId, 'member', member.id, 'avatar_updated', '更新个人头像')
   save(state)
   return clone(member)
@@ -357,4 +381,4 @@ async function revokeInvite() { throw new Error('多人邀请需先配置微信�
 async function previewInvite() { throw new Error('多人邀请需先配置微信云开发') }
 async function joinTrip() { throw new Error('多人邀请需先配置微信云开发') }
 
-module.exports = { archiveTrip, bootstrap, createExpense, createInvite, createOfflineMember, createTrip, deactivateMember, deleteExpense, getActiveInvite, getExpense, getSettlement, getTrip, joinTrip, listTrips, previewInvite, previewSettlement, removeMember, restoreTrip, revokeInvite, startSettlement, transferOwner, updateExpense, updateMyAvatar, updateOfflineMember, updateTransferStatus, updateTrip, uploadAvatar }
+module.exports = { archiveTrip, bootstrap, createExpense, createInvite, createOfflineMember, createTrip, deactivateMember, deleteExpense, getActiveInvite, getExpense, getSettlement, getTrip, joinTrip, listTrips, previewInvite, previewSettlement, removeMember, restoreTrip, revokeInvite, startSettlement, transferOwner, updateExpense, updateMyAvatar, updateOfflineMember, updateProfile, updateTransferStatus, updateTrip, uploadAvatar }

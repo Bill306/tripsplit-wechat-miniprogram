@@ -1,6 +1,7 @@
 .date-row { display: flex; gap: 18rpx; }
 .date-row .field { flex: 1; }
-.avatar-select { display: flex; align-items: center; gap: 18rpx; min-height: 104rpx; margin: 0; padding: 12rpx 20rpx; background: #fffaf0; border: 2rpx solid #d8cbb4; border-radius: 20rpx; color: #315a4f; font-size: 25rpx; font-weight: 800; line-height: 1.2; }
-.avatar-select image, .avatar-select > text { width: 76rpx; height: 76rpx; border-radius: 50%; }
-.avatar-select > text { display: flex; align-items: center; justify-content: center; background: #f8e7b3; font-size: 40rpx; }
+.identity-summary { display: flex; align-items: center; gap: 18rpx; margin-top: 28rpx; padding: 18rpx 22rpx; background: #f7edcf; border: 2rpx dashed #c9a84c; border-radius: 20rpx; }
+.identity-summary image { width: 72rpx; height: 72rpx; border: 4rpx solid #fffaf0; border-radius: 50%; }
+.identity-summary text { display: block; font-weight: 800; }
+.identity-summary text + text { margin-top: 6rpx; color: #6e7c75; font-size: 21rpx; font-weight: 500; }
 .date-row .field-picker { font-size: 26rpx; }

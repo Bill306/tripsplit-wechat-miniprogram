@@ -2,7 +2,6 @@
   <view class="eyebrow">TRIP INVITATION</view><view class="page-title">{{invite ? invite.tripName : '加入这次旅行'}}</view><view class="page-subtitle" wx:if="{{invite}}">{{invite.ownerName}} 邀请你加入 · 已有 {{invite.memberCount}} 人<text wx:if="{{invite.destination}}"> · {{invite.destination}}</text></view><view class="page-subtitle" wx:else>加入后，你可以和同行伙伴一起查看和记录账单。</view>
   <view class="illustration-banner join-banner"><image src="/assets/images/cat-lake-hero.jpg" mode="aspectFill"/><view class="tape-label">叫上小伙伴，一起去看世界吧！</view></view>
   <view wx:if="{{error}}" class="demo-banner">{{error}}</view>
-  <view class="field"><text class="field-label">你的头像</text><button class="avatar-select" open-type="chooseAvatar" bindchooseavatar="chooseAvatar"><image wx:if="{{avatarLocalPath}}" src="{{avatarLocalPath}}" mode="aspectFill"/><text wx:else>🐱</text><view>使用微信头像或上传</view></button></view>
-  <view class="field"><text class="field-label">你在这次行程里的名字</text><input class="field-input" maxlength="30" placeholder="例如：小明" value="{{displayName}}" bindinput="updateName"/></view>
+  <view class="join-identity"><image src="{{avatarUrl}}" mode="aspectFill"/><view><strong>{{displayName}}</strong><text>将使用你的微信身份加入这次行程</text></view></view>
   <view class="fixed-actions"><button class="primary-button" loading="{{submitting || loading}}" disabled="{{submitting || loading || !invite}}" bindtap="join">🐾 确认加入行程</button></view>
 </view>
