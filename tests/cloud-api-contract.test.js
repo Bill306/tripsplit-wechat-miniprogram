@@ -65,6 +65,7 @@ function createFakeCloud() {
   const database = {
     command,
     collection: (name) => new Collection(name),
+    async createCollection(name) { storeFor(name); return {} },
     async startTransaction() {
       const before = clone(Object.fromEntries([...stores].map(([name, rows]) => [name, [...rows.values()]])))
       return {

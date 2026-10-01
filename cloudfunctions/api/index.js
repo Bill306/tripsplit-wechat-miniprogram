@@ -10,6 +10,28 @@ const C = {
   users: 'users', trips: 'trips', members: 'members', expenses: 'expenses',
   expenseShares: 'expenseShares', settlements: 'settlements', transfers: 'settlementTransfers', audits: 'auditLogs', invites: 'invites',
 }
+
+let schemaReadyPromise = null
+
+async function ensureCollections() {
+  if (!schemaReadyPromise) {
+    schemaReadyPromise = Promise.all(Object.values(C).map(async (name) => {
+      try {
+        await db.createCollection(name)
+      } catch (createError) {
+        try {
+          await db.collection(name).limit(1).get()
+        } catch (_) {
+          throw createError
+        }
+      }
+    })).catch((error) => {
+      schemaReadyPromise = null
+      throw error
+    })
+  }
+  return schemaReadyPromise
+}
 const CATEGORIES = new Set(['food', 'transport', 'stay', 'ticket', 'shopping', 'other'])
 
 class ApiError extends Error {
@@ -111,6 +133,7 @@ async function dashboard(openid, trip) {
 }
 
 async function bootstrap(openid) {
+  await ensureCollections()
   const existing = await db.collection(C.users).where({ openid }).limit(1).get()
   let profile = existing.data[0]
   if (!profile) {
