@@ -1,26 +1,38 @@
 <view class="page-shell profile-shell">
-  <view class="profile-brand"><view class="brand-paw">🐾</view><view><view class="brand-title">喵喵旅账</view><view class="brand-subtitle">先认认同行的你</view></view></view>
-
-  <view class="passport-card">
-    <image class="passport-scene" src="/assets/images/cat-ledger-cafe.jpg" mode="aspectFill"/>
-    <view class="passport-shade"></view>
-    <view class="passport-copy"><text>TRAVEL ID</text><strong>{{editMode ? '更新我的旅行身份' : '领取我的旅行身份'}}</strong></view>
+  <view class="login-brand">
+    <view class="brand-mark"><text>🐱</text></view>
+    <view class="brand-name">喵喵旅账</view>
+    <view class="brand-slogan">和朋友旅行，账目一起记清楚</view>
   </view>
 
-  <view class="identity-sheet">
-    <view class="ticket-notch ticket-notch-left"></view><view class="ticket-notch ticket-notch-right"></view>
-    <view class="identity-heading">当前微信身份</view>
-    <view class="identity-tip">微信会自动识别当前登录账号；头像和昵称需要你亲自确认一次。</view>
+  <view class="login-card">
+    <view class="login-heading">{{editMode ? '个人资料' : '微信登录'}}</view>
+    <view class="login-description">{{editMode ? '修改同行伙伴看到的头像和昵称' : '使用当前微信账号快速开始'}}</view>
+
+    <view wx:if="{{!editMode}}" class="wechat-account-state">
+      <view class="state-icon">✓</view>
+      <view><text>当前微信账号已识别</text><text>无需注册，也不需要输入密码</text></view>
+    </view>
+
     <button class="avatar-picker" open-type="chooseAvatar" bindchooseavatar="chooseAvatar" disabled="{{loading || submitting}}">
-      <image wx:if="{{avatarUrl}}" src="{{avatarUrl}}" mode="aspectFill"/>
-      <view wx:else class="avatar-placeholder">🐱</view>
-      <view class="avatar-copy"><strong>{{avatarUrl ? '已选择头像' : '选择微信头像'}}</strong><text>点这里使用当前微信头像或上传照片</text></view>
-      <view class="edit-mark">✎</view>
+      <view class="avatar-wrap">
+        <image wx:if="{{avatarUrl}}" src="{{avatarUrl}}" mode="aspectFill"/>
+        <view wx:else class="avatar-placeholder">🐱</view>
+        <view class="camera-mark">✎</view>
+      </view>
+      <view class="avatar-copy"><strong>{{avatarUrl ? '微信头像已选择' : '选择微信头像'}}</strong><text>点击使用微信头像或从相册选择</text></view>
+      <view class="row-arrow">›</view>
     </button>
-    <view class="field nickname-field"><text class="field-label">你的昵称</text><input class="field-input" type="nickname" maxlength="30" placeholder="点击填写微信昵称" value="{{displayName}}" bindinput="updateName"/></view>
+
+    <view class="nickname-field">
+      <text class="field-label">微信昵称</text>
+      <input class="nickname-input" type="nickname" maxlength="30" placeholder="点击使用微信昵称" value="{{displayName}}" bindinput="updateName"/>
+    </view>
+
     <view wx:if="{{error}}" class="demo-banner">{{error}}</view>
-    <view class="privacy-note">仅用于同行成员识别，不会获取手机号或通讯录。</view>
+    <button class="wechat-login-button" loading="{{loading || submitting}}" disabled="{{loading || submitting}}" bindtap="submit">{{editMode ? '保存资料' : '微信一键登录'}}</button>
+    <view class="privacy-note">头像和昵称仅用于同行成员识别，不会获取手机号或通讯录。</view>
   </view>
 
-  <button class="primary-button continue-button" loading="{{loading || submitting}}" disabled="{{loading || submitting}}" bindtap="submit">🐾 {{editMode ? '保存我的资料' : '确认身份，开始旅行'}}</button>
+  <view wx:if="{{!editMode}}" class="login-footnote">登录后，下次打开将直接进入你的行程</view>
 </view>
