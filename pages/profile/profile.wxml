@@ -1,15 +1,16 @@
 <view class="page-shell profile-shell">
+  <journey-nav label="{{editMode ? '个人资料' : '开始一段旅行'}}" home="{{editMode}}"/>
   <view class="login-brand">
-    <view class="brand-mark"><text>🐱</text></view>
+    <image class="login-cat" src="/assets/images/cat-lake-hero.jpg" mode="aspectFill"/>
     <view class="brand-name">喵喵旅账</view>
     <view class="brand-slogan">和朋友旅行，账目一起记清楚</view>
   </view>
 
   <view class="login-card">
-    <view class="login-heading">{{editMode ? '个人资料' : '微信登录'}}</view>
+    <view class="login-heading">{{editMode ? '让旅伴认出你' : '你好，旅伴。'}}</view>
     <view class="login-description">{{editMode ? '修改同行伙伴看到的头像和昵称' : '使用当前微信账号快速开始'}}</view>
 
-    <view wx:if="{{!editMode}}" class="wechat-account-state">
+    <view wx:if="{{!editMode && !loading && !error}}" class="wechat-account-state">
       <view class="state-icon">✓</view>
       <view><text>当前微信账号已识别</text><text>无需注册，也不需要输入密码</text></view>
     </view>
@@ -20,7 +21,7 @@
         <view wx:else class="avatar-placeholder">🐱</view>
         <view class="camera-mark">✎</view>
       </view>
-      <view class="avatar-copy"><strong>{{avatarUrl ? '微信头像已选择' : '选择微信头像'}}</strong><text>点击使用微信头像或从相册选择</text></view>
+      <view class="avatar-copy"><strong>{{avatarUrl ? '头像已选择' : '选择你的头像'}}</strong><text>由你选择，同行成员可见</text></view>
       <view class="row-arrow">›</view>
     </button>
 
@@ -30,7 +31,8 @@
     </view>
 
     <view wx:if="{{error}}" class="demo-banner">{{error}}</view>
-    <button class="wechat-login-button" loading="{{loading || submitting}}" disabled="{{loading || submitting}}" bindtap="submit">{{editMode ? '保存资料' : '微信一键登录'}}</button>
+    <button wx:if="{{error && !ready}}" class="wechat-login-button" bindtap="retry">重新连接微信身份</button>
+    <button wx:else class="wechat-login-button" loading="{{loading || submitting}}" disabled="{{loading || submitting || !ready}}" bindtap="submit">{{editMode ? '保存资料' : '用当前微信身份开始'}}</button>
     <view class="privacy-note">头像和昵称仅用于同行成员识别，不会获取手机号或通讯录。</view>
   </view>
 

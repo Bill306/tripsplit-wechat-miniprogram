@@ -1,8 +1,11 @@
 const repository = require('../../services/repository')
+const { CURRENCIES } = require('../../domain/currency')
 
 Page({
-  data: { id: '', trip: null, name: '', destination: '', startDate: '', endDate: '', ownerName: '', profileAvatarUrl: '', companionsText: '', submitting: false },
+  data: { id: '', trip: null, name: '', destination: '', startDate: '', endDate: '', ownerName: '', profileAvatarUrl: '', companionsText: '', submitting: false, loading: true, error: '', currencies: CURRENCIES, currencyIndex: 0 },
   async onLoad(options) {
+    this.launchOptions = options
+    this.setData({ loading: true, error: '' })
     if (!options.id) {
       try {
         const profile = await repository.bootstrap()
@@ -11,23 +14,29 @@ Page({
           return wx.redirectTo({ url: `/pages/profile/profile?redirect=${redirect}` })
         }
         this.setData({ ownerName: profile.displayName, profileAvatarUrl: profile.avatarUrl })
-      } catch (error) { wx.showToast({ title: error.message, icon: 'none' }) }
+      } catch (error) { this.setData({ error: error.message }) }
+      finally { this.setData({ loading: false }) }
       return
     }
     try {
       const trip = await repository.getTrip(options.id)
-      this.setData({ id: trip.id, trip, name: trip.name, destination: trip.destination, startDate: trip.startDate, endDate: trip.endDate })
+      this.setData({ id: trip.id, trip, name: trip.name, destination: trip.destination, startDate: trip.startDate, endDate: trip.endDate, currencyIndex: Math.max(0, CURRENCIES.findIndex((item) => item.code === (trip.baseCurrency || 'CNY'))) })
       wx.setNavigationBarTitle({ title: '行程设置' })
-    } catch (error) { wx.showToast({ title: error.message, icon: 'none' }) }
+    } catch (error) { this.setData({ error: error.message }) }
+    finally { this.setData({ loading: false }) }
   },
+  retry() { return this.onLoad(this.launchOptions || {}) },
   updateField(event) { this.setData({ [event.currentTarget.dataset.field]: event.detail.value }) },
+  changeCurrency(event) { if (!this.data.id) this.setData({ currencyIndex: Number(event.detail.value) }) },
   async submit() {
+    if (this.data.loading || this.data.error || this.data.submitting) return
     if (!this.data.name.trim()) return wx.showToast({ title: '请填写行程名称', icon: 'none' })
     if (this.data.endDate && this.data.startDate && this.data.endDate < this.data.startDate) return wx.showToast({ title: '结束日期不能早于开始日期', icon: 'none' })
     this.setData({ submitting: true })
     try {
       const input = {
         name: this.data.name,
+        baseCurrency: CURRENCIES[this.data.currencyIndex].code,
         destination: this.data.destination,
         startDate: this.data.startDate,
         endDate: this.data.endDate,

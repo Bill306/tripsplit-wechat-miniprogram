@@ -1,5 +1,9 @@
 <view wx:if="{{trip}}" class="page-shell">
-  <view class="eyebrow">TRAVEL CREW</view><view class="page-title">同行伙伴</view><view class="page-subtitle">离线成员无需微信登录，可由创建者代为记账。</view>
+  <journey-nav label="同行伙伴"/>
+  <view class="page-title">同行伙伴</view><view class="page-subtitle">{{trip.name}} · 大家各记一笔，共享同一本账。</view>
+  <view wx:if="{{trip.canManage && trip.status !== 'archived'}}" class="journey-note"><text class="note-title">让朋友用自己的微信加入</text><button class="quiet-button" bindtap="openInvite">邀请微信好友 ›</button></view>
+  <view wx:if="{{trip.canManage}}" class="section-title">帮不使用小程序的旅伴记账</view>
+  <view class="page-subtitle">手动添加的是离线成员，不是微信账号。对方不会自动收到邀请，也不能登录这个成员身份确认收款。</view>
   <view wx:if="{{trip.canManage}}" class="paper-card add-card"><input class="member-input" maxlength="30" placeholder="输入成员名字" value="{{newName}}" bindinput="updateNewName"/><button class="primary-button add-button" loading="{{busy}}" bindtap="add">添加</button></view>
   <view class="section-title">成员列表 · {{trip.members.length}}</view>
   <view class="member-list">
@@ -11,3 +15,4 @@
     </view>
   </view>
 </view>
+<view wx:else class="page-shell"><journey-nav label="同行伙伴"/><view wx:if="{{loading}}" class="page-loading">正在寻找同行伙伴…</view><view wx:if="{{error}}" class="demo-banner">{{error}}<button class="quiet-button" bindtap="load">重新加载</button></view></view>

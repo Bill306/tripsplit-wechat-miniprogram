@@ -8,7 +8,9 @@
 
 - 创建行程和同行成员
 - 全员均分、部分人分摊、按份数分摊
-- 整数分计算与稳定尾差分配
+- 整数最小货币单位计算与稳定尾差分配
+- 12 种货币：行程结算币种、原币金额、自动参考汇率 / 手动汇率 / 实际扣款
+- 自动汇率使用 Frankfurter / ECB 每日参考数据；账单保存后冻结，不随行情变化
 - 成员垫付、承担、应收/应付统计
 - 减少转账次数的结算方案
 - `pending → paid → received` 双向确认
@@ -38,7 +40,9 @@ npm test
 
 云端使用以下集合：
 
-`users`、`trips`、`members`、`expenses`、`expenseShares`、`settlements`、`settlementTransfers`、`auditLogs`、`invites`。
+`users`、`trips`、`members`、`expenses`、`expenseShares`、`settlements`、`settlementTransfers`、`auditLogs`、`invites`、`fxQuotes`。
+
+`fxQuotes` 与其他集合一样禁止客户端直接读写。自动汇率只由云函数查询，不传送账单、成员或身份信息；本地演示模式支持手动汇率与实际扣款，不联网取价。接口不可用时明确提示，不按 1:1 静默换算。详情见多币种设计文档。
 
 ## 文档
 
@@ -48,6 +52,7 @@ npm test
 - `docs/TEST_PLAN.md`
 - `docs/CLOUD_SETUP.md`
 - `docs/SECURITY.md`
+- `docs/MULTICURRENCY_DESIGN.md`
 
 ## 隐私
 

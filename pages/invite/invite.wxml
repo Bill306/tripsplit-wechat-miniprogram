@@ -1,0 +1,21 @@
+<view class="page-shell invite-shell">
+  <journey-nav label="邀请旅伴"/>
+  <view class="page-title">好旅伴，一起记。</view>
+  <view class="page-subtitle">{{trip ? trip.name : '把朋友带进同一本旅行账本'}}</view>
+  <view class="illustration-banner"><image src="/assets/images/cat-settlement-crew.jpg" mode="aspectFill"/><view class="tape-label">邀请加入 · 各自记账 · 一起算清</view></view>
+  <view wx:if="{{loading}}" class="page-loading">正在准备邀请信息…</view>
+  <view wx:if="{{error}}" class="demo-banner">{{error}}<button wx:if="{{!trip}}" class="quiet-button" bindtap="load">重新加载</button></view>
+  <block wx:if="{{!loading && trip}}">
+    <view wx:if="{{canInvite && invite}}" class="paper-card invitation-ticket">
+      <view class="ticket-caption">行程匹配码</view><view class="matching-code">{{invite.inviteCode}}</view>
+      <view class="muted">好友打开喵喵旅账 → 加入行程 → 输入这 6 位数字</view>
+      <view wx:if="{{qrUrl}}" class="qr-wrap"><image src="{{qrUrl}}" mode="aspectFit" bindtap="showQr"/><text>使用微信扫一扫 · 点击可放大</text></view>
+      <view class="ticket-actions"><button class="quiet-button" bindtap="copyCode">复制匹配码</button><button class="quiet-button" loading="{{qrLoading}}" disabled="{{qrLoading}}" bindtap="showQr">{{qrUrl ? '放大二维码' : '显示二维码'}}</button></view>
+      <button class="revoke-link" disabled="{{busy || qrLoading}}" bindtap="revoke">撤销当前邀请</button>
+    </view>
+    <view wx:elif="{{canInvite}}" class="paper-card"><view class="section-title">邀请还没有生成</view><view class="page-subtitle">生成后，可通过微信分享、二维码或匹配码邀请朋友。</view><button class="primary-button generate-button" loading="{{busy}}" disabled="{{busy}}" bindtap="create">生成行程邀请</button></view>
+    <view wx:else class="journey-note">{{trip.status === 'archived' ? '行程已归档，不能再加入新成员。' : '请联系行程创建者发送邀请。'}} 你仍可以返回账本查看已有记录。</view>
+    <view wx:if="{{canInvite}}" class="journey-note"><text class="note-title">朋友需要做什么？</text><text>用自己的微信打开邀请，完成头像昵称，再确认加入。</text><text>开发版／体验版需先有对应访问权限；匹配码不能绕过微信的权限检查。</text></view>
+    <view class="fixed-actions"><button class="secondary-button" bindtap="openTrip">回到账本</button><button wx:if="{{canInvite && invite}}" class="primary-button" open-type="share">分享给微信好友</button></view>
+  </block>
+</view>

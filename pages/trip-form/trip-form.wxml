@@ -1,14 +1,19 @@
 <view class="page-shell">
-  <view class="eyebrow">{{id ? 'JOURNEY SETTINGS' : 'NEW JOURNEY'}}</view>
+  <journey-nav label="{{id ? '行程设置' : '创建行程'}}"/>
+  <view wx:if="{{loading}}" class="page-loading">正在准备行程信息…</view>
+  <view wx:elif="{{error}}" class="demo-banner">{{error}}<button class="quiet-button" bindtap="retry">重新加载</button></view>
+  <block wx:else>
   <view class="page-title">{{id ? '行程设置' : '这次去哪里？'}}</view>
   <view class="page-subtitle">{{id ? '修改名称、目的地和日期，不会改变已有账单。' : '先创建共享账本，同行伙伴可以稍后继续加。'}}</view>
   <view class="field"><text class="field-label">行程名称 *</text><input class="field-input" maxlength="30" placeholder="例如：云南七日" value="{{name}}" data-field="name" bindinput="updateField"/></view>
   <view class="field"><text class="field-label">目的地</text><input class="field-input" placeholder="例如：大理、丽江" value="{{destination}}" data-field="destination" bindinput="updateField"/></view>
+  <view class="field"><text class="field-label">统一结算币种</text><picker range="{{currencies}}" range-key="label" value="{{currencyIndex}}" bindchange="changeCurrency" disabled="{{!!id}}"><view class="field-picker">{{currencies[currencyIndex].label}} {{id ? '' : '▾'}}</view></picker><view class="muted">所有消费统一折算为此币种；创建后固定，已有账单不会被重算。</view></view>
   <view class="date-row">
     <view class="field"><text class="field-label">开始日期</text><picker mode="date" value="{{startDate}}" data-field="startDate" bindchange="updateField"><view class="field-picker">{{startDate || '选择日期'}}</view></picker></view>
     <view class="field"><text class="field-label">结束日期</text><picker mode="date" value="{{endDate}}" data-field="endDate" bindchange="updateField"><view class="field-picker">{{endDate || '选择日期'}}</view></picker></view>
   </view>
   <block wx:if="{{!id}}"><view class="identity-summary"><image src="{{profileAvatarUrl}}" mode="aspectFill"/><view><text>以 {{ownerName}} 的身份创建</text><text>头像和昵称来自你的微信身份</text></view></view>
-  <view class="field"><text class="field-label">先加上同行伙伴（可选）</text><textarea class="field-textarea" placeholder="用逗号或换行分开，例如：小明，小红" value="{{companionsText}}" data-field="companionsText" bindinput="updateField"/></view></block>
+  <view class="field"><text class="field-label">代记账的离线旅伴（可选）</text><textarea class="field-textarea" placeholder="用逗号或换行分开，例如：小明，小红" value="{{companionsText}}" data-field="companionsText" bindinput="updateField"/></view><view class="journey-note">朋友会自己用微信记账？这里先不填，创建后点「邀请旅伴」，让他们用自己的微信加入。</view></block>
   <view class="fixed-actions"><button wx:if="{{id && trip.status !== 'archived'}}" class="danger-button" bindtap="archive">归档</button><button class="primary-button" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submit">{{id ? '保存设置' : '创建行程'}}</button></view>
+  </block>
 </view>

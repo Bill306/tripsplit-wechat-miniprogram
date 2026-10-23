@@ -15,6 +15,7 @@
 - `settlementTransfers`
 - `auditLogs`
 - `invites`
+- `fxQuotes`（按 ID 读取，不需要组合索引）
 
 所有集合的客户端权限设为“所有用户不可读写”。小程序只调用 `api` 云函数，云函数以服务端身份访问数据库。
 
@@ -45,6 +46,8 @@
 4. 部署后调用 `bootstrap`，确认返回 `{ mode: "cloud" }`。
 
 云函数依赖已由 `cloudfunctions/api/package-lock.json` 固定。依赖风险说明见 `SECURITY.md`。
+
+多币种自动参考汇率由云函数通过 HTTPS 请求 `api.frankfurter.dev` 的 ECB 数据，无需 API key。需确认部署环境可访问该域名，并给云函数预留超过 8 秒的超时预算。接口仅发送币种和日期，不发送用户、账单或行程资料。`fxQuotes` 也必须禁止客户端读写；已有账单保存不可变报价 ID 与汇率快照。每日参考值不是微信支付成交汇率，用户可以填写实际扣款。新增功能设计见 `MULTICURRENCY_DESIGN.md`。
 
 ## 4. 验收
 

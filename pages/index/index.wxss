@@ -34,3 +34,17 @@
 .empty-icon { font-size: 74rpx; filter: grayscale(.2); }
 .empty-title { margin: 18rpx 0 10rpx; font-size: 32rpx; font-weight: 800; }
 .button-plus { display: inline-flex; align-items: center; justify-content: center; width: 48rpx; height: 48rpx; margin-right: 10rpx; background: rgba(255,255,255,.14); border-radius: 50%; line-height: 48rpx; }
+.join-code-card { border-color: #e1b54e; background: #fff9e8; }
+.join-code-title { margin-bottom: 8rpx; font-size: 30rpx; font-weight: 900; }
+.join-code-input { height: 104rpx; margin-top: 24rpx; padding: 0 24rpx; background: #fffdf7; border: 2rpx solid #d8c59e; border-radius: 20rpx; color: #21372f; font-size: 52rpx; font-weight: 900; letter-spacing: 18rpx; text-align: center; }
+.join-code-actions { display: flex; gap: 16rpx; margin-top: 22rpx; }
+.join-code-actions button { flex: 1; min-height: 76rpx; border-radius: 38rpx; font-size: 25rpx; font-weight: 800; line-height: 76rpx; }
+.join-code-cancel { background: #efe8d9; color: #506058; }
+.join-code-confirm { background: #176c56; color: #fffdf5; }
+.hero-card { height: 330rpx; box-shadow: 0 10rpx 24rpx rgba(63,49,27,.12); }
+.hero-note { top: 14rpx; padding: 10rpx 14rpx; font-size: 20rpx; }
+.hero-title { font-size: 42rpx; }
+.hero-copy { bottom: 22rpx; }
+.profile-chip { width: auto; max-width: 48%; }
+.profile-chip text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+button.trip-card { display: block; width: 100%; text-align: left; line-height: 1.5; color: #20352f; }

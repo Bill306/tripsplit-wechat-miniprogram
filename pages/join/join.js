@@ -2,8 +2,23 @@ const repository = require('../../services/repository')
 
 Page({
   data: { inviteId: '', invite: null, displayName: '', avatarUrl: '', loading: true, submitting: false, error: '' },
-  async onLoad(options) {
-    const inviteId = options.inviteId || ''
+  onLoad(options) { this.initialize(options) },
+  goHome() { getApp().globalData.launchInviteCode = ''; wx.reLaunch({ url: '/pages/index/index' }) },
+  async initialize(options) {
+    let inviteId = options.inviteId || ''
+    let launchScene = ''
+    try { launchScene = (wx.getLaunchOptionsSync().query || {}).scene || '' } catch (_) {}
+    const rawCode = options.code || options.scene || launchScene || getApp().globalData.launchInviteCode || ''
+    const sceneCode = decodeURIComponent(rawCode).replace(/^code=/, '').replace(/\D/g, '').slice(0, 6)
+    if (!inviteId && sceneCode) {
+      try {
+        getApp().globalData.launchInviteCode = ''
+        const resolved = await repository.resolveInviteCode(sceneCode)
+        inviteId = resolved.inviteId
+      } catch (error) {
+        return this.setData({ loading: false, error: error.message })
+      }
+    }
     this.setData({ inviteId, error: inviteId ? '' : '邀请链接不完整', loading: Boolean(inviteId) })
     try {
       const profile = await repository.bootstrap()
@@ -24,7 +39,7 @@ Page({
     this.setData({ submitting: true })
     try {
       const result = await repository.joinTrip({ inviteId: this.data.inviteId, displayName: this.data.displayName.trim(), avatarUrl: this.data.avatarUrl })
-      wx.redirectTo({ url: `/pages/trip/trip?id=${result.tripId}` })
+      wx.reLaunch({ url: `/pages/trip/trip?id=${result.tripId}` })
     } catch (error) { this.setData({ submitting: false, error: error.message }) }
   },
 })

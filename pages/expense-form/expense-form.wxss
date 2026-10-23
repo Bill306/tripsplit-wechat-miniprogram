@@ -16,3 +16,18 @@
 .category-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14rpx; }
 .category-item { display: flex; flex-direction: column; align-items: center; gap: 8rpx; padding: 20rpx; background: #fffaf0; border: 2rpx solid #d5c8b4; border-radius: 18rpx; }
 .category-item.active { border-color: #e1ac32; background: #fff2be; color: #485035; font-weight: 800; box-shadow: 0 5rpx 0 #e3b746; }
+.fx-card { margin: 24rpx 0; padding: 24rpx; border-radius: 20rpx; background: #edf4ee; color: #17362e; }
+.fx-modes { display: flex; flex-wrap: wrap; gap: 16rpx; margin: 20rpx 0; font-size: 24rpx; }
+.fx-modes label { display: flex; align-items: center; }
+.fx-modes radio { transform: scale(.75); }
+.fx-note { font-size: 22rpx; line-height: 1.7; color: #66756b; margin-top: 12rpx; }
+.fx-error { font-size: 24rpx; color: #a83c30; margin: 12rpx 0; }
+.fx-total { font-size: 30rpx; font-weight: 700; margin: 20rpx 0; }
+.voice-card { margin: 28rpx 0; padding: 24rpx; border: 2rpx solid #d7c7a6; border-radius: 24rpx; background: #fff9e9; }
+.voice-button { margin: 20rpx 0; background: #1f6b57; color: #fff; font-size: 28rpx; border-radius: 18rpx; }
+.voice-button.is-recording { background: #a74332; }
+.voice-text { width: 100%; min-height: 100rpx; box-sizing: border-box; margin-top: 20rpx; padding: 18rpx; font-size: 26rpx; line-height: 1.6; background: #fffefa; border-radius: 14rpx; }
+.voice-preview { border-top: 2rpx solid #e0d6c3; padding-top: 16rpx; font-size: 24rpx; }
+.voice-toggle { margin-top: 24rpx; text-align: left; background: #f0ecdc; }
+.amount-field text { font-size: 32rpx; }
+.amount-field input { min-width: 0; }

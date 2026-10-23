@@ -1,7 +1,10 @@
 <view class="page-shell">
-  <view class="eyebrow">TRIP INVITATION</view><view class="page-title">{{invite ? invite.tripName : '加入这次旅行'}}</view><view class="page-subtitle" wx:if="{{invite}}">{{invite.ownerName}} 邀请你加入 · 已有 {{invite.memberCount}} 人<text wx:if="{{invite.destination}}"> · {{invite.destination}}</text></view><view class="page-subtitle" wx:else>加入后，你可以和同行伙伴一起查看和记录账单。</view>
+  <journey-nav label="加入行程"/>
+  <view class="page-title">{{invite ? invite.tripName : '加入这次旅行'}}</view><view class="page-subtitle" wx:if="{{invite}}">{{invite.ownerName}} 邀请你加入 · 已有 {{invite.memberCount}} 人<text wx:if="{{invite.destination}}"> · {{invite.destination}}</text></view><view class="page-subtitle" wx:else>加入后，你可以和同行伙伴一起查看和记录账单。</view>
   <view class="illustration-banner join-banner"><image src="/assets/images/cat-lake-hero.jpg" mode="aspectFill"/><view class="tape-label">叫上小伙伴，一起去看世界吧！</view></view>
-  <view wx:if="{{error}}" class="demo-banner">{{error}}</view>
-  <view class="join-identity"><image src="{{avatarUrl}}" mode="aspectFill"/><view><strong>{{displayName}}</strong><text>将使用你的微信身份加入这次行程</text></view></view>
-  <view class="fixed-actions"><button class="primary-button" loading="{{submitting || loading}}" disabled="{{submitting || loading || !invite}}" bindtap="join">🐾 确认加入行程</button></view>
+  <view wx:if="{{loading}}" class="page-loading">正在查看邀请…</view>
+  <view wx:if="{{error}}" class="demo-banner">{{error}}<view>可请创建者重新分享邀请，或返回首页输入匹配码。</view></view>
+  <view wx:if="{{displayName}}" class="join-identity"><image src="{{avatarUrl}}" mode="aspectFill"/><view><strong>{{displayName}}</strong><text>将使用此身份加入，同伴可见你的头像和昵称</text></view></view>
+  <view wx:if="{{invite}}" class="journey-note">加入后可以查看这次旅行的全部账单，并记录自己的垫付。加入不会扣款。</view>
+  <view class="fixed-actions"><button wx:if="{{error}}" class="secondary-button" bindtap="goHome">回到首页</button><button class="primary-button" loading="{{submitting || loading}}" disabled="{{submitting || loading || !invite}}" bindtap="join">确认加入行程</button></view>
 </view>

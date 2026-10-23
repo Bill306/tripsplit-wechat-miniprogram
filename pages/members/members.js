@@ -1,19 +1,22 @@
 const repository = require('../../services/repository')
 
 Page({
-  data: { tripId: '', trip: null, newName: '', editingId: '', editingName: '', busy: false },
+  data: { tripId: '', trip: null, newName: '', editingId: '', editingName: '', busy: false, loading: true, error: '' },
   onLoad(options) { this.setData({ tripId: options.tripId }) },
   onShow() { if (this.data.tripId) this.load() },
   async load() {
+    this.setData({ loading: true, error: '' })
     try {
       const trip = await repository.getTrip(this.data.tripId)
       trip.members = trip.members.map((member) => ({ ...member, initial: member.displayName.slice(0, 1), isCurrent: member.id === trip.currentMemberId }))
       trip.canManage = trip.currentMemberRole === 'owner' && trip.currentMemberStatus === 'active'
       this.setData({ trip })
     }
-    catch (error) { wx.showToast({ title: error.message, icon: 'none' }) }
+    catch (error) { this.setData({ error: error.message }) }
+    finally { this.setData({ loading: false }) }
   },
   updateNewName(event) { this.setData({ newName: event.detail.value }) },
+  openInvite() { wx.navigateTo({ url: `/pages/invite/invite?tripId=${this.data.tripId}` }) },
   async chooseAvatar(event) {
     this.setData({ busy: true })
     try { await repository.updateMyAvatar(this.data.tripId, event.detail.avatarUrl); await this.load(); wx.showToast({ title: '头像已更新' }) }

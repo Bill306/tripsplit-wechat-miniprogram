@@ -7,15 +7,21 @@
     <image class="hero-image" src="/assets/images/cat-lake-hero.jpg" mode="aspectFill"/>
     <view class="hero-scrim"></view>
     <view class="hero-note">和喜欢的猫<br/>一起去看更大的世界～</view>
-    <view class="hero-copy"><view class="hero-kicker">多人旅行记账 · 一键最优结算</view><view class="hero-title">收集风景，<br/>也收集美好的回忆。</view></view>
+    <view class="hero-copy"><view class="hero-kicker">喵喵旅账 · 共享旅行账本</view><view class="hero-title">一起出发，<br/>每笔都清楚。</view></view>
   </view>
-  <view class="page-subtitle home-subtitle">各自记一笔，共享同一本账。旅行结束时，再轻轻松松分清。</view>
+  <view class="page-subtitle home-subtitle">我的行程 · 记下各自的垫付，最后一起算清。</view>
+  <view wx:if="{{loading}}" class="page-loading">正在打开你的旅行账本…</view>
   <view wx:if="{{mode === 'demo'}}" class="demo-banner">当前为本机演示模式；界面与计算可用，但多人共享需完成云开发配置。</view>
   <view wx:if="{{error}}" class="demo-banner">{{error}}</view>
+  <view wx:if="{{joinCodeOpen}}" class="paper-card join-code-card">
+    <view><view class="join-code-title">输入匹配码</view><view class="muted">请输入行程创建者分享的 6 位数字。</view></view>
+    <input class="join-code-input" type="number" maxlength="6" value="{{inviteCode}}" placeholder="000000" bindinput="updateInviteCode" focus/>
+    <view class="join-code-actions"><button class="join-code-cancel" bindtap="closeJoinCode">取消</button><button class="join-code-confirm" loading="{{joining}}" bindtap="joinWithCode">找到行程</button></view>
+  </view>
   <view wx:if="{{trips.length}}" class="trip-list">
     <view wx:for="{{groups}}" wx:key="key" wx:for-item="group" class="trip-group">
       <view class="group-title">{{group.title}} <text>{{group.trips.length}}</text></view>
-    <view wx:for="{{group.trips}}" wx:key="id" wx:for-item="trip" class="paper-card trip-card" data-id="{{trip.id}}" bindtap="openTrip">
+    <button wx:for="{{group.trips}}" wx:key="id" wx:for-item="trip" class="paper-card trip-card" data-id="{{trip.id}}" bindtap="openTrip">
       <view class="trip-card-head">
         <view class="trip-identity"><view class="trip-stamp">旅</view><view><view class="trip-name">{{trip.name}}</view><view class="trip-meta">{{trip.destination || '还没填目的地'}} · {{trip.members.length}} 位旅伴</view></view></view>
         <view class="status-chip">{{trip.statusLabel}}</view>
@@ -25,11 +31,11 @@
         <view><text class="metric-label">总消费</text><text class="metric-value">{{trip.totalAmount}}</text></view>
         <view class="metric-right"><text class="metric-label">{{trip.myNetLabel}}</text><text class="metric-value {{trip.myNetClass}}">{{trip.myNetAmount}}</text></view>
       </view>
-    </view>
+    </button>
     </view>
   </view>
   <view wx:elif="{{!loading}}" class="empty-state">
     <view class="empty-icon">🐈‍⬛</view><view class="empty-title">猫咪还没出发</view><view class="muted">建一个行程，把同行伙伴和每笔费用放在一起。</view>
   </view>
-  <view class="fixed-actions"><button class="primary-button" bindtap="createTrip"><text class="button-plus">＋</text> 创建新行程</button></view>
+  <view class="fixed-actions"><button class="secondary-button" bindtap="openJoinCode">加入行程</button><button class="primary-button" bindtap="createTrip">＋ 创建行程</button></view>
 </view>

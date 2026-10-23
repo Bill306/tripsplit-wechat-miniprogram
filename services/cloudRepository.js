@@ -20,6 +20,7 @@ function uploadAvatar(tempFilePath) {
 }
 
 module.exports = {
+  getFxQuote: (input) => call('fx.quote', input),
   bootstrap: () => call('bootstrap'),
   updateProfile: (input) => call('user.updateProfile', input),
   listTrips: () => call('trip.list'),
@@ -46,6 +47,8 @@ module.exports = {
   createInvite: (tripId) => call('invite.create', { tripId }),
   getActiveInvite: (tripId) => call('invite.getActive', { tripId }),
   revokeInvite: (inviteId) => call('invite.revoke', { inviteId }),
+  resolveInviteCode: (inviteCode) => call('invite.resolveCode', { inviteCode }),
+  getInviteQr: (inviteId, envVersion) => call('invite.getQr', { inviteId, envVersion }),
   previewInvite: (inviteId) => call('invite.preview', { inviteId }),
   joinTrip: (input) => call('invite.join', input),
 }

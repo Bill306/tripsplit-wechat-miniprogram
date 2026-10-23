@@ -4,3 +4,4 @@
 .join-identity strong, .join-identity text { display: block; }
 .join-identity strong { font-size: 29rpx; }
 .join-identity text { margin-top: 8rpx; color: #6e7c75; font-size: 22rpx; }
+.join-banner { height: 230rpx; }

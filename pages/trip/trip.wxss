@@ -3,6 +3,14 @@
 .invite-row { display: flex; justify-content: flex-end; gap: 12rpx; margin-top: 14rpx; }
 .invite-button { min-height: 58rpx; margin: 0; padding: 0 22rpx; background: transparent; border: 2rpx solid #1f6b57; border-radius: 30rpx; color: #1f6b57; font-size: 23rpx; line-height: 56rpx; }
 .invite-button.danger-link { border-color: #b75a48; color: #b75a48; }
+.invite-card { background: #fff8df; border-color: #e3bd57; }
+.invite-card-head { display: flex; align-items: center; justify-content: space-between; }
+.invite-label { color: #6e6a58; font-size: 22rpx; font-weight: 700; }
+.invite-code { margin-top: 8rpx; color: #173f34; font-family: Georgia, serif; font-size: 58rpx; font-weight: 900; letter-spacing: 12rpx; }
+.invite-paw { display: flex; align-items: center; justify-content: center; width: 78rpx; height: 78rpx; background: #f1c452; border-radius: 50% 50% 42% 50%; font-size: 34rpx; transform: rotate(8deg); }
+.invite-actions { display: flex; gap: 12rpx; margin-top: 24rpx; }
+.invite-actions button { flex: 1; min-height: 72rpx; padding: 0 10rpx; background: #176c56; border-radius: 36rpx; color: #fff; font-size: 22rpx; font-weight: 800; line-height: 72rpx; }
+.revoke-button { min-height: 62rpx; margin-top: 16rpx; background: transparent; color: #a65342; font-size: 22rpx; line-height: 62rpx; }
 .trip-postcard { position: relative; height: 250rpx; margin-top: 24rpx; overflow: hidden; border: 7rpx solid #fffaf0; border-radius: 24rpx; box-shadow: 0 12rpx 28rpx rgba(62,48,25,.15); }
 .trip-postcard image { width: 100%; height: 100%; }
 .postcard-copy { position: absolute; top: 18rpx; left: 18rpx; padding: 14rpx 18rpx; background: rgba(255,248,226,.92); color: #304239; font-family: "STKaiti", "KaiTi", serif; font-size: 22rpx; font-weight: 900; line-height: 1.35; transform: rotate(-2deg); }
@@ -33,3 +41,9 @@
 .expense-note { overflow: hidden; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
 .expense-meta { margin-top: 6rpx; color: #7d8983; font-size: 22rpx; }
 .expense-amount { margin-left: 14rpx; font-weight: 900; }
+.trip-postcard { height: 164rpx; box-shadow: none; }
+.postcard-copy { padding: 8rpx 14rpx; font-size: 20rpx; }
+.invite-emphasis { background: #205c47; color: #fff8e8; }
+.total-card .amount-positive { color: #d4f0d7; }
+.total-card .amount-negative { color: #ffddac; }
+button.expense-row { width: 100%; margin: 0; border-radius: 0; background: transparent; text-align: left; line-height: 1.5; font-size: 28rpx; color: #20352f; }

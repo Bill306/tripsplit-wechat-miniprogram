@@ -1,25 +1,31 @@
 const repository = require('../../services/repository')
-const { formatFen } = require('../../domain/money')
+const { amountText } = require('../../domain/currency')
 const { CATEGORY } = require('../../utils/view')
 
 Page({
-  data: { id: '', expense: null, deleting: false },
+  data: { id: '', expense: null, deleting: false, loading: true, error: '' },
   onLoad(options) { this.setData({ id: options.id }) },
   onShow() { if (this.data.id) this.load() },
   async load() {
+    this.setData({ loading: true, error: '' })
     try {
       const expense = await repository.getExpense(this.data.id)
+      const baseCurrency = expense.baseCurrency || 'CNY'
+      const formatFen = (value) => amountText(value, baseCurrency)
       const names = Object.fromEntries(expense.members.map((member) => [member.id, member.displayName]))
       this.setData({ expense: {
         ...expense,
         amountText: formatFen(expense.amountFen),
+        originalAmountText: expense.originalCurrency && expense.originalCurrency !== baseCurrency ? amountText(expense.originalAmountMinor, expense.originalCurrency) : '',
+        fxDescription: expense.fx && expense.fx.mode !== 'same' ? (expense.fx.mode === 'actual' ? '按手动填写的实际扣款金额记账' : `1 ${expense.originalCurrency} = ${expense.fx.rate} ${baseCurrency}`) : '',
         payerName: names[expense.payerMemberId],
         categoryLabel: (CATEGORY[expense.category] || CATEGORY.other).label,
         spentAtText: expense.spentAt.slice(0, 10),
         sharesView: Object.entries(expense.shares).map(([memberId, amountFen]) => ({ memberId, name: names[memberId], amountText: formatFen(amountFen) })),
         auditEvents: (expense.auditEvents || []).map((event) => ({ ...event, createdAtText: String(event.createdAt).replace('T', ' ').slice(0, 16) })),
       } })
-    } catch (error) { wx.showToast({ title: error.message, icon: 'none' }) }
+    } catch (error) { this.setData({ error: error.message }) }
+    finally { this.setData({ loading: false }) }
   },
   edit() { wx.navigateTo({ url: `/pages/expense-form/expense-form?tripId=${this.data.expense.tripId}&expenseId=${this.data.id}` }) },
   async remove() {

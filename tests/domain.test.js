@@ -49,9 +49,9 @@ test('ledger summarizes payments and obligations and ignores deleted expenses', 
     { payerMemberId: 'c', amountFen: 999, shares: { c: 999 }, deletedAt: '2026-01-05' },
   ]
   assert.deepEqual(summarizeLedger(members, expenses), [
-    { memberId: 'b', displayName: '小明', paidAmount: 60, owedAmount: 63, netAmount: -3 },
-    { memberId: 'a', displayName: 'Bill', paidAmount: 100, owedAmount: 34, netAmount: 66 },
-    { memberId: 'c', displayName: '小红', paidAmount: 0, owedAmount: 63, netAmount: -63 },
+    { memberId: 'b', displayName: '小明', paidAmount: 60, owedAmount: 63, netAmount: -3, ledgerNetAmount: -3, settledNetAmount: 0 },
+    { memberId: 'a', displayName: 'Bill', paidAmount: 100, owedAmount: 34, netAmount: 66, ledgerNetAmount: 66, settledNetAmount: 0 },
+    { memberId: 'c', displayName: '小红', paidAmount: 0, owedAmount: 63, netAmount: -63, ledgerNetAmount: -63, settledNetAmount: 0 },
   ])
 })
 

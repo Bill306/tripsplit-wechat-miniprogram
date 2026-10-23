@@ -16,3 +16,15 @@
 .mini-button { min-height: 76rpx; font-size: 26rpx; line-height: 76rpx; }
 .transfer-actions { display: flex; gap: 12rpx; }
 .transfer-actions button { flex: 1; }
+.my-settlement { display: flex; gap: 20rpx; background: #244d3d; color: #fff8e9; border-color: #244d3d; }
+.my-settlement > view { flex: 1; min-width: 0; }
+.my-settlement text, .my-settlement strong { display: block; }
+.my-settlement text { color: #d6dec9; font-size: 24rpx; }
+.my-settlement strong { margin-top: 12rpx; font-size: 36rpx; overflow-wrap: anywhere; }
+.settle-progress { display: flex; justify-content: space-between; font-size: 24rpx; color: #637663; }
+.my-transfer { border-color: #77937b; }
+.transfer-personal { margin-bottom: 18rpx; color: #4c765d; font-size: 22rpx; }
+.transfer-route { font-size: 27rpx; overflow-wrap: anywhere; }
+.settlement-footnote { font-size: 22rpx; margin-top: 24rpx; }
+.settle-head .page-title { font-size: 44rpx; }
+.fixed-actions .primary-button { font-size: 25rpx; }

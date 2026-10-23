@@ -1,0 +1,1 @@
+<view class="journey-nav"><button wx:if="{{home}}" bindtap="goHome">‹ 我的行程</button><text wx:else>喵喵旅账</text><text class="current">{{label}}</text></view>

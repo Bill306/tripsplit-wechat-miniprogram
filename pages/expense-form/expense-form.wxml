@@ -1,7 +1,35 @@
 <view wx:if="{{trip}}" class="page-shell expense-shell">
-  <view class="eyebrow">{{expenseId ? 'EDIT ENTRY' : 'QUICK ENTRY'}}</view><view class="page-title">{{expenseId ? '编辑账单' : '记一笔'}}</view><view class="page-subtitle">{{trip.name}}</view>
-  <view class="illustration-banner entry-banner"><image src="/assets/images/cat-ledger-cafe.jpg" mode="aspectFill"/><view class="tape-label">每一笔支出，都是旅程的一部分 🐾</view></view>
-  <view class="amount-field"><text>¥</text><input type="digit" placeholder="0.00" value="{{amount}}" data-field="amount" bindinput="updateField" focus/></view>
+  <journey-nav label="{{expenseId ? '编辑账单' : '记一笔'}}"/>
+  <view class="page-title">{{expenseId ? '编辑账单' : '这笔花了多少？'}}</view><view class="page-subtitle">{{trip.name}} · 保存后同行成员都能看到</view>
+  <button class="voice-toggle quiet-button" bindtap="toggleVoice">{{voiceExpanded ? '收起一句话录入' : '试试一句话录入 ›'}}</button>
+  <view wx:if="{{voiceExpanded}}" class="voice-card">
+    <view class="field-label">说一句，记一笔</view>
+    <view class="fx-note">例如：今天中午吃饭花了三千日元</view>
+    <button wx:if="{{voiceEnabled}}" class="voice-button {{voiceState === 'recording' ? 'is-recording' : ''}}" bindtouchstart="startVoice" catchtouchmove="moveVoice" bindtouchend="endVoice" bindtouchcancel="cancelVoice" disabled="{{submitting || voiceApplying || voiceState === 'recognizing'}}">{{voiceState === 'recognizing' ? '正在识别…' : voiceState === 'recording' ? (voiceCancel ? '松开取消' : '松开结束 · 上滑取消') : '🎙 按住说话（最多30秒）'}}</button>
+    <view wx:else class="fx-note">录音服务待启用。现在可输入一句话，或使用手机键盘的语音输入。</view>
+    <view wx:if="{{voiceEnabled}}" class="fx-note">录音发送至微信同声传译服务转写；本小程序不主动保存原录音。</view>
+    <textarea class="voice-text" maxlength="300" value="{{voiceText}}" bindinput="editVoiceText" placeholder="识别结果会出现在这里，也可以直接输入一句话" disabled="{{voiceState !== 'idle' || submitting || voiceApplying}}" auto-height/>
+    <button class="text-button" bindtap="previewVoice" disabled="{{!voiceText || voiceState !== 'idle' || submitting || voiceApplying}}">解析这句话</button>
+    <view wx:if="{{voiceError}}" class="fx-error">{{voiceError}}</view>
+    <view wx:if="{{voiceDraft}}" class="voice-preview">
+      <view wx:for="{{voiceDraft.issues}}" wx:key="*this" class="fx-error">{{item}}</view>
+      <view wx:if="{{voiceDraft.ready}}" class="fx-total">{{voiceDraft.originalCurrency}} {{voiceDraft.amount}} · {{voiceDraft.categoryLabel}}</view>
+      <view wx:if="{{voiceDraft.spentAt}}">消费日期：{{voiceDraft.spentAt}}</view>
+      <view wx:for="{{voiceDraft.warnings}}" wx:key="*this" class="fx-note">{{item}}</view>
+      <button wx:if="{{voiceDraft.ready}}" class="secondary-button" bindtap="applyVoice" disabled="{{submitting || voiceApplying}}">填入账单，继续核对</button>
+    </view>
+  </view>
+  <view class="field"><text class="field-label">消费币种</text><picker range="{{currencies}}" range-key="label" value="{{currencyIndex}}" bindchange="changeCurrency" disabled="{{submitting}}"><view class="field-picker">{{currencies[currencyIndex].label}} ▾</view></picker></view>
+  <view class="amount-field"><text>{{originalCurrency}}</text><input type="digit" placeholder="{{currencies[currencyIndex].decimals === 0 ? '0' : '0.00'}}" value="{{amount}}" data-field="amount" bindinput="updateField" disabled="{{submitting}}"/></view>
+  <view wx:if="{{originalCurrency !== baseCurrency}}" class="fx-card">
+    <view class="field-label">折算为 {{baseCurrency}}</view>
+    <radio-group bindchange="changeFxMode" class="fx-modes"><label><radio value="auto" checked="{{fxMode === 'auto'}}"/>自动参考</label><label><radio value="manual" checked="{{fxMode === 'manual'}}"/>手动汇率</label><label><radio value="actual" checked="{{fxMode === 'actual'}}"/>实际扣款</label></radio-group>
+    <block wx:if="{{fxMode === 'auto'}}"><view wx:if="{{fxQuote}}">1 {{originalCurrency}} = {{fxQuote.rate}} {{baseCurrency}}</view><view wx:if="{{fxQuote}}" class="fx-note">报价日期 {{fxQuote.rateDate}} · Frankfurter / ECB</view><view wx:if="{{fxQuote && fxQuote.rateDate !== spentAt}}" class="fx-note">消费日未发布报价，采用此前可用汇率。</view><button class="text-button" loading="{{fxLoading}}" disabled="{{fxLoading || submitting}}" bindtap="refreshQuote">{{fxQuote ? '重新获取参考汇率' : '获取参考汇率'}}</button></block>
+    <view wx:if="{{fxMode === 'manual'}}"><view class="fx-note">1 {{originalCurrency}} 等于多少 {{baseCurrency}}？</view><input class="field-input" type="digit" placeholder="填写汇率，最多 8 位小数" value="{{fxRate}}" data-field="fxRate" bindinput="updateField" disabled="{{submitting}}"/></view>
+    <view wx:if="{{fxMode === 'actual'}}"><view class="fx-note">填写支付账单中的实际扣款总额（{{baseCurrency}}）</view><input class="field-input" type="digit" placeholder="实际扣款金额" value="{{actualAmount}}" data-field="actualAmount" bindinput="updateField" disabled="{{submitting}}"/></view>
+    <view wx:if="{{fxError}}" class="fx-error">{{fxError}}</view><view wx:if="{{convertedText}}" class="fx-total">记入账本 {{convertedText}}</view>
+    <view class="fx-note">参考汇率不等于微信或银行卡扣款价；保存后固定。ECB 数据可免费查询：ecb.europa.eu</view>
+  </view>
   <view class="field"><text class="field-label">谁付的</text><picker mode="selector" range="{{trip.members}}" range-key="displayLabel" value="{{payerIndex}}" bindchange="changePayer"><view class="field-picker">{{trip.members[payerIndex].displayLabel}} ▾</view></picker></view>
   <view class="field"><text class="field-label">谁参与</text><checkbox-group bindchange="changeParticipants" class="member-grid">
     <label wx:for="{{trip.members}}" wx:key="id" class="check-chip"><checkbox value="{{item.id}}" checked="{{item.selected}}" color="#1F6B57"/>{{item.displayLabel}}</label>
@@ -13,5 +41,6 @@
   <view class="field"><text class="field-label">分类</text><view class="category-grid"><view wx:for="{{categories}}" wx:key="value" class="category-item {{category === item.value ? 'active' : ''}}" data-value="{{item.value}}" bindtap="chooseCategory"><text>{{item.icon}}</text><text>{{item.label}}</text></view></view></view>
   <view class="field"><text class="field-label">备注（可选）</text><input class="field-input" maxlength="100" placeholder="例如：洱海边的晚饭" value="{{note}}" data-field="note" bindinput="updateField"/></view>
   <view class="field"><text class="field-label">消费日期</text><picker mode="date" value="{{spentAt}}" data-field="spentAt" bindchange="updateField"><view class="field-picker">{{spentAt}}</view></picker></view>
-  <view class="fixed-actions"><button class="primary-button" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submit">🐾 {{expenseId ? '保存修改' : '确认记账'}}</button></view>
+  <view class="fixed-actions"><button class="primary-button" loading="{{submitting}}" disabled="{{submitting || fxLoading || voiceApplying || voiceState !== 'idle'}}" bindtap="submit">🐾 {{expenseId ? '保存修改' : '确认记账'}}</button></view>
 </view>
+<view wx:else class="page-shell"><journey-nav label="记一笔"/><view wx:if="{{loading}}" class="page-loading">正在打开共享账本…</view><view wx:if="{{error}}" class="demo-banner">{{error}}<button class="quiet-button" bindtap="loadTrip">重新加载</button></view></view>

@@ -1,25 +1,27 @@
 <view wx:if="{{trip}}" class="page-shell trip-shell">
+  <journey-nav label="共享账本"/>
   <view class="trip-heading"><view><view class="eyebrow">{{trip.destination || 'SHARED JOURNEY'}}</view><view class="page-title">{{trip.name}}</view></view><view class="status-chip">{{trip.statusLabel}}</view></view>
-  <view wx:if="{{trip.currentMemberRole === 'owner' && trip.currentMemberStatus === 'active' && trip.status !== 'archived'}}" class="invite-row"><button class="invite-button" bindtap="editTrip">行程设置</button><button wx:if="{{!invitePath}}" class="invite-button" bindtap="prepareInvite">生成邀请</button><button wx:else class="invite-button" open-type="share">分享给同行伙伴</button><button wx:if="{{invitePath}}" class="invite-button danger-link" bindtap="revokeInvite">撤销</button></view>
+  <view wx:if="{{trip.currentMemberRole === 'owner' && trip.currentMemberStatus === 'active' && trip.status !== 'archived'}}" class="invite-row"><button class="invite-button" bindtap="editTrip">行程设置</button><button class="invite-button invite-emphasis" bindtap="openInvite">＋ 邀请旅伴</button></view>
   <view class="trip-postcard"><image src="/assets/images/cat-lake-hero.jpg" mode="aspectFill"/><view class="postcard-copy">好的旅伴，<br/>让每一段旅程都更特别！</view></view>
   <view wx:if="{{trip.currentMemberStatus === 'inactive'}}" class="demo-banner">你已退出该行程，目前只能查看历史记录。</view>
   <view class="paper-card total-card">
     <view class="muted">本次总消费</view><view class="hero-amount">{{trip.totalAmount}}</view>
     <view class="summary-row"><view><text>我已垫付</text><strong>{{trip.myPaidAmount}}</strong></view><view><text>我应承担</text><strong>{{trip.myOwedAmount}}</strong></view><view><text>{{trip.myNetLabel}}</text><strong class="{{trip.myNetClass}}">{{trip.myNetAmount}}</strong></view></view>
   </view>
-  <view class="section-head"><view class="section-title">成员净额</view><button wx:if="{{trip.currentMemberRole === 'owner'}}" class="text-button" bindtap="manageMembers">管理成员</button></view>
+  <view class="section-head"><view class="section-title">同行伙伴 · {{trip.members.length}}</view><button class="text-button" bindtap="manageMembers">查看旅伴 ›</button></view>
+  <view class="muted">余额已扣除此前完成的结算，累计消费与垫付仍保留。</view>
   <scroll-view class="member-strip" scroll-x enhanced show-scrollbar="false">
     <view wx:for="{{trip.summary}}" wx:key="memberId" class="member-pill"><view class="member-avatar"><image wx:if="{{item.avatarUrl}}" src="{{item.avatarUrl}}" mode="aspectFill"/><text wx:else>{{item.initial}}</text></view><view><text>{{item.displayName}}</text><text class="member-net {{item.netClass}}">{{item.netLabel}} {{item.netAmountText}}</text></view></view>
   </scroll-view>
   <view class="section-title">最近账单</view>
   <view wx:if="{{trip.expenses.length}}" class="expense-list">
-    <view wx:for="{{trip.expenses}}" wx:key="id" class="expense-row" data-id="{{item.id}}" bindtap="openExpense">
-      <view class="expense-icon">{{item.categoryIcon}}</view><view class="expense-main"><view class="expense-note">{{item.note || item.categoryLabel}}</view><view class="expense-meta">{{item.payerName}} 垫付 · {{item.spentAtText}}</view></view><view class="expense-amount">{{item.amountText}}</view>
-    </view>
+    <button wx:for="{{trip.expenses}}" wx:key="id" class="expense-row" data-id="{{item.id}}" bindtap="openExpense">
+      <view class="expense-icon">{{item.categoryIcon}}</view><view class="expense-main"><view class="expense-note">{{item.note || item.categoryLabel}}</view><view class="expense-meta">{{item.payerName}} 垫付 · {{item.spentAtText}}</view><view wx:if="{{item.originalAmountText}}" class="expense-meta">原币 {{item.originalAmountText}}</view></view><view class="expense-amount">{{item.amountText}}</view>
+    </button>
   </view>
-  <view wx:else class="empty-state"><view class="empty-title">还没有账单</view><view class="muted">第一笔可以是住宿、车票，或者出发前的聚餐。</view></view>
+  <view wx:else class="empty-state"><view class="empty-title">账本准备好了</view><view class="muted">先邀请朋友，或直接记下第一笔住宿、车票和聚餐。</view></view>
   <view wx:if="{{trip.status === 'archived' && trip.currentMemberRole === 'owner' && trip.currentMemberStatus === 'active'}}" class="fixed-actions"><button class="primary-button" bindtap="restoreTrip">恢复行程</button></view>
   <view wx:elif="{{trip.status !== 'archived' && trip.currentMemberStatus === 'active'}}" class="fixed-actions"><button class="secondary-button" bindtap="openSettlement">查看结算</button><button class="primary-button" bindtap="addExpense">+  记一笔</button></view>
   <view wx:elif="{{trip.status !== 'archived'}}" class="fixed-actions"><button class="secondary-button" bindtap="openSettlement">查看结算</button></view>
 </view>
-<view wx:elif="{{error}}" class="page-shell"><view class="demo-banner">{{error}}</view></view>
+<view wx:else class="page-shell"><journey-nav label="共享账本"/><view wx:if="{{loading}}" class="page-loading">正在打开旅行账本…</view><view wx:if="{{error}}" class="demo-banner">{{error}}<button class="quiet-button" bindtap="loadTrip">重新加载</button></view></view>

@@ -3,6 +3,7 @@ const repository = require('../../services/repository')
 Page({
   data: {
     loading: true,
+    ready: false,
     submitting: false,
     editMode: false,
     redirect: '/pages/index/index',
@@ -12,14 +13,22 @@ Page({
     error: '',
   },
   async onLoad(options) {
+    this.launchOptions = options
+    this.setData({ loading: true, error: '', ready: false })
     const editMode = options.edit === '1'
-    const redirect = options.redirect ? decodeURIComponent(options.redirect) : '/pages/index/index'
+    wx.setNavigationBarTitle({ title: editMode ? '个人资料' : '微信登录' })
+    const launchInviteCode = getApp().globalData.launchInviteCode
+    const redirect = options.redirect
+      ? decodeURIComponent(options.redirect)
+      : launchInviteCode
+        ? `/pages/join/join?code=${launchInviteCode}`
+        : '/pages/index/index'
     this.setData({ editMode, redirect })
     try {
       const profile = await repository.bootstrap()
       getApp().globalData.profile = profile
       if (profile.profileComplete && !editMode) return wx.reLaunch({ url: redirect })
-      this.setData({ displayName: profile.displayName || '', avatarUrl: profile.avatarUrl || '', loading: false })
+      this.setData({ displayName: profile.displayName || '', avatarUrl: profile.avatarUrl || '', loading: false, ready: true })
     } catch (error) {
       this.setData({ loading: false, error: error.message })
     }
@@ -27,10 +36,12 @@ Page({
   chooseAvatar(event) {
     this.setData({ avatarUrl: event.detail.avatarUrl, hasNewAvatar: true })
   },
+  retry() { return this.onLoad(this.launchOptions || {}) },
   updateName(event) {
     this.setData({ displayName: event.detail.value })
   },
   async submit() {
+    if (!this.data.ready || this.data.submitting) return
     const displayName = this.data.displayName.trim()
     if (!this.data.avatarUrl) return wx.showToast({ title: '请先选择微信头像', icon: 'none' })
     if (!displayName) return wx.showToast({ title: '请填写微信昵称', icon: 'none' })

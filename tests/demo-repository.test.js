@@ -19,6 +19,21 @@ async function seedTrip() {
   return repository.getTrip(trip.id)
 }
 
+test('multi-currency demo stores original amounts, settles base units and locks base currency', async () => {
+  storage = {}
+  const created = await repository.createTrip({ name: '日本旅行', baseCurrency: 'JPY', companions: ['同行'] })
+  const trip = await repository.getTrip(created.id)
+  const input = { tripId: trip.id, payerMemberId: trip.currentMemberId, participantMemberIds: trip.members.map((m) => m.id), splitMode: 'equal', category: 'food', spentAt: '2026-10-02T12:00:00Z', originalCurrency: 'USD', originalAmountMinor: 100, fx: { mode: 'manual', rate: '150.5' }, clientRequestId: 'fx-demo-first' }
+  const expense = await repository.createExpense(input)
+  assert.equal(expense.amountFen, 151)
+  assert.equal(Object.values(expense.shares).reduce((sum, value) => sum + value, 0), 151)
+  assert.equal((await repository.getTrip(trip.id)).baseCurrency, 'JPY')
+  const updated = await repository.updateExpense({ ...input, expenseId: expense.id, expectedRevision: 1, fx: { mode: 'actual', actualAmountMinor: 149 } })
+  assert.equal(updated.amountFen, 149)
+  assert.equal((await repository.startSettlement(trip.id)).baseCurrency, 'JPY')
+  await assert.rejects(() => repository.updateTrip({ tripId: trip.id, name: '日本旅行', baseCurrency: 'USD' }), /不可修改/)
+})
+
 test('saves the confirmed WeChat profile and reuses it for new trips', async () => {
   storage = {}
   const initial = await repository.bootstrap()
@@ -106,6 +121,30 @@ test('settlement advances pending to paid to received and completes the trip', a
   }
   assert.equal(settlement.status, 'completed')
   assert.equal((await repository.getTrip(trip.id)).status, 'settled')
+})
+
+test('adjustments settle only the new balance and cannot unlock completed expenses', async () => {
+  const trip = await seedTrip()
+  const input = {
+    tripId: trip.id, payerMemberId: trip.currentMemberId, amountFen: 300,
+    participantMemberIds: trip.members.map((member) => member.id), splitMode: 'equal', units: {},
+    category: 'food', spentAt: '2026-09-21T12:00:00.000Z', clientRequestId: 'completed-original',
+  }
+  const original = await repository.createExpense(input)
+  for (let round = 0; round < 2; round += 1) {
+    let settlement = await repository.startSettlement(trip.id)
+    assert.equal(settlement.transfers.reduce((sum, item) => sum + item.amountFen, 0), round === 0 ? 200 : 20)
+    for (const transfer of settlement.transfers) {
+      await repository.updateTransferStatus({ settlementId: settlement.id, transferId: transfer.id, status: 'paid' })
+      await repository.updateTransferStatus({ settlementId: settlement.id, transferId: transfer.id, status: 'received' })
+    }
+    assert.ok((await repository.getTrip(trip.id)).summary.every((item) => item.netAmount === 0))
+    await repository.createExpense({ ...input, amountFen: 30, clientRequestId: `adjustment-round-${round}` })
+    await assert.rejects(() => repository.updateExpense({ ...input, expenseId: original.id, expectedRevision: 1 }), /已结算账单/)
+    await assert.rejects(() => repository.deleteExpense({ expenseId: original.id, expectedRevision: 1 }), /已结算账单/)
+    assert.equal((await repository.getExpense(original.id)).canEdit, false)
+  }
+  assert.equal((await repository.previewSettlement(trip.id)).transfers.reduce((sum, item) => sum + item.amountFen, 0), 20)
 })
 
 test('deactivated member remains in historical ledger but is excluded from new expenses', async () => {

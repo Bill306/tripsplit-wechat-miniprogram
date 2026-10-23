@@ -1,6 +1,6 @@
 'use strict'
 
-function summarizeLedger(members, expenses) {
+function summarizeLedger(members, expenses, completedSettlements = []) {
   const summary = Object.fromEntries(
     members.map((member) => [member.id, {
       memberId: member.id,
@@ -24,9 +24,15 @@ function summarizeLedger(members, expenses) {
     })
   })
 
+  const settledAmounts = {}
+  completedSettlements.forEach((settlement) => {
+    settlement.summary.forEach((item) => { settledAmounts[item.memberId] = (settledAmounts[item.memberId] || 0) + item.netAmount })
+  })
   const result = Object.values(summary).map((item) => ({
     ...item,
-    netAmount: item.paidAmount - item.owedAmount,
+    ledgerNetAmount: item.paidAmount - item.owedAmount,
+    settledNetAmount: settledAmounts[item.memberId] || 0,
+    netAmount: item.paidAmount - item.owedAmount - (settledAmounts[item.memberId] || 0),
   }))
   assertBalanced(result)
   return result
