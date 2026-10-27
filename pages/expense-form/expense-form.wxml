@@ -1,6 +1,7 @@
 <view wx:if="{{trip}}" class="page-shell expense-shell">
   <journey-nav label="{{expenseId ? '编辑账单' : '记一笔'}}"/>
   <view class="page-title">{{expenseId ? '编辑账单' : '这笔花了多少？'}}</view><view class="page-subtitle">{{trip.name}} · 保存后同行成员都能看到</view>
+  <view wx:if="{{draftNotice}}" class="journey-note">{{draftNotice}}</view>
   <button class="voice-toggle quiet-button" bindtap="toggleVoice">{{voiceExpanded ? '收起一句话录入' : '试试一句话录入 ›'}}</button>
   <view wx:if="{{voiceExpanded}}" class="voice-card">
     <view class="field-label">说一句，记一笔</view>

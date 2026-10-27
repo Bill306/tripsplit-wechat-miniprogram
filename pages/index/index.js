@@ -5,7 +5,7 @@ Page({
   data: { loading: true, trips: [], groups: [], profile: null, error: '', mode: repository.mode, joinCodeOpen: false, inviteCode: '', joining: false },
   onShow() {
     const inviteCode = getApp().globalData.launchInviteCode
-    if (inviteCode) return wx.navigateTo({ url: `/pages/join/join?code=${inviteCode}` })
+    if (inviteCode) return wx.navigateTo({ url: `/pages/join/join?code=${encodeURIComponent(inviteCode)}` })
     this.loadTrips()
   },
   async loadTrips() {

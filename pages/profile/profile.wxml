@@ -1,5 +1,5 @@
 <view class="page-shell profile-shell">
-  <journey-nav label="{{editMode ? '个人资料' : '开始一段旅行'}}" home="{{editMode}}"/>
+  <journey-nav label="{{editMode ? '个人资料' : '开始一段旅行'}}" home="{{editMode || !!error}}"/>
   <view class="login-brand">
     <image class="login-cat" src="/assets/images/cat-lake-hero.jpg" mode="aspectFill"/>
     <view class="brand-name">喵喵旅账</view>

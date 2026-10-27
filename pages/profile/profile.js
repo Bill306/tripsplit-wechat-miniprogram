@@ -1,4 +1,5 @@
 const repository = require('../../services/repository')
+const { profileDestination } = require('../../domain/entry')
 
 Page({
   data: {
@@ -12,19 +13,16 @@ Page({
     hasNewAvatar: false,
     error: '',
   },
-  async onLoad(options) {
+  async onLoad(options = {}) {
     this.launchOptions = options
     this.setData({ loading: true, error: '', ready: false })
     const editMode = options.edit === '1'
     wx.setNavigationBarTitle({ title: editMode ? '个人资料' : '微信登录' })
     const launchInviteCode = getApp().globalData.launchInviteCode
-    const redirect = options.redirect
-      ? decodeURIComponent(options.redirect)
-      : launchInviteCode
-        ? `/pages/join/join?code=${launchInviteCode}`
-        : '/pages/index/index'
-    this.setData({ editMode, redirect })
+    this.setData({ editMode })
     try {
+      const redirect = profileDestination(options.redirect, launchInviteCode)
+      this.setData({ redirect })
       const profile = await repository.bootstrap()
       getApp().globalData.profile = profile
       if (profile.profileComplete && !editMode) return wx.reLaunch({ url: redirect })

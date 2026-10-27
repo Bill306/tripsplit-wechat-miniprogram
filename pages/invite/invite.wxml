@@ -10,7 +10,7 @@
       <view class="ticket-caption">行程匹配码</view><view class="matching-code">{{invite.inviteCode}}</view>
       <view class="muted">好友打开喵喵旅账 → 加入行程 → 输入这 6 位数字</view>
       <view wx:if="{{qrUrl}}" class="qr-wrap"><image src="{{qrUrl}}" mode="aspectFit" bindtap="showQr"/><text>使用微信扫一扫 · 点击可放大</text></view>
-      <view class="ticket-actions"><button class="quiet-button" bindtap="copyCode">复制匹配码</button><button class="quiet-button" loading="{{qrLoading}}" disabled="{{qrLoading}}" bindtap="showQr">{{qrUrl ? '放大二维码' : '显示二维码'}}</button></view>
+      <view class="ticket-actions"><button class="quiet-button" bindtap="copyCode">复制匹配码</button><button class="quiet-button qr-button" loading="{{qrLoading}}" disabled="{{qrLoading}}" bindtap="showQr">{{qrUrl ? '放大二维码' : '显示二维码'}}</button></view>
       <button class="revoke-link" disabled="{{busy || qrLoading}}" bindtap="revoke">撤销当前邀请</button>
     </view>
     <view wx:elif="{{canInvite}}" class="paper-card"><view class="section-title">邀请还没有生成</view><view class="page-subtitle">生成后，可通过微信分享、二维码或匹配码邀请朋友。</view><button class="primary-button generate-button" loading="{{busy}}" disabled="{{busy}}" bindtap="create">生成行程邀请</button></view>

@@ -4,12 +4,15 @@ const { CATEGORY } = require('../../utils/view')
 
 Page({
   data: { id: '', expense: null, deleting: false, loading: true, error: '' },
-  onLoad(options) { this.setData({ id: options.id }) },
+  onLoad(options = {}) { this.setData({ id: options.id || '', ...(!options.id ? { loading: false, error: '账单链接不完整，请返回首页重新打开' } : {}) }) },
   onShow() { if (this.data.id) this.load() },
   async load() {
+    if (!this.data.id) return
     this.setData({ loading: true, error: '' })
     try {
       const expense = await repository.getExpense(this.data.id)
+      const trip = await repository.getTrip(expense.tripId)
+      expense.canEdit = expense.canEdit && trip.status !== 'archived'
       const baseCurrency = expense.baseCurrency || 'CNY'
       const formatFen = (value) => amountText(value, baseCurrency)
       const names = Object.fromEntries(expense.members.map((member) => [member.id, member.displayName]))
@@ -27,8 +30,9 @@ Page({
     } catch (error) { this.setData({ error: error.message }) }
     finally { this.setData({ loading: false }) }
   },
-  edit() { wx.navigateTo({ url: `/pages/expense-form/expense-form?tripId=${this.data.expense.tripId}&expenseId=${this.data.id}` }) },
+  edit() { if (this.data.expense && this.data.expense.canEdit) wx.navigateTo({ url: `/pages/expense-form/expense-form?tripId=${this.data.expense.tripId}&expenseId=${this.data.id}` }) },
   async remove() {
+    if (this.data.deleting || !this.data.expense || !this.data.expense.canEdit) return
     const confirmed = await new Promise((resolve) => wx.showModal({ title: '删除这笔账单？', content: '删除后统计和结算会立即重新计算。', confirmColor: '#C24B3A', success: (result) => resolve(result.confirm) }))
     if (!confirmed) return
     this.setData({ deleting: true })

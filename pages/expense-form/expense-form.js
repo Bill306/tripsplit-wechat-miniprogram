@@ -1,6 +1,7 @@
 const repository = require('../../services/repository')
 const money = require('../../domain/currency')
 const { parseVoiceExpense } = require('../../domain/voiceExpense')
+const { restoreDraftMembers } = require('../../domain/draft')
 const voiceInput = require('../../services/voiceInput')
 const voiceConfig = require('../../config/voice')
 const { CATEGORY } = require('../../utils/view')
@@ -10,30 +11,35 @@ function localDate() { const now = new Date(); return `${now.getFullYear()}-${St
 
 Page({
   data: {
-    tripId: '', expenseId: '', revision: 0, trip: null, loading: true, error: '', amount: '', payerIndex: 0, participantMemberIds: [], splitMode: 'equal', units: {},
+    tripId: '', expenseId: '', revision: 0, trip: null, loading: true, error: '', draftNotice: '', amount: '', payerIndex: 0, participantMemberIds: [], splitMode: 'equal', units: {},
     categories: Object.entries(CATEGORY).map(([value, meta]) => ({ value, ...meta })), category: 'other', note: '', spentAt: '', submitting: false,
     currencies: money.CURRENCIES, currencyIndex: 0, originalCurrency: 'CNY', baseCurrency: 'CNY',
     fxMode: 'auto', fxRate: '', actualAmount: '', fxQuote: null, fxLoading: false, fxError: '', convertedText: '',
     voiceEnabled: voiceConfig.enabled, voiceExpanded: false, voiceState: 'idle', voiceText: '', voiceError: '', voiceDraft: null, voiceCancel: false, voiceApplying: false,
   },
-  onLoad(options) { this.setData({ tripId: options.tripId, expenseId: options.expenseId || '', spentAt: localDate() }); this.loadTrip() },
+  onLoad(options = {}) { this.setData({ tripId: options.tripId || '', expenseId: options.expenseId || '', spentAt: localDate() }); this.loadTrip() },
   draftKey() { return `tripsplit.draft.${this.data.tripId}` },
   toggleVoice() { if (this.data.voiceState === 'idle' && !this.data.voiceApplying) this.setData({ voiceExpanded: !this.data.voiceExpanded }) },
   async loadTrip() {
-    this.setData({ loading: true, error: '' })
+    if (!this.data.tripId) return this.setData({ loading: false, error: '行程链接不完整，请返回首页重新打开' })
+    this.setData({ loading: true, error: '', trip: null })
     try {
       const trip = await repository.getTrip(this.data.tripId)
+      if (trip.status === 'archived') throw new Error('行程已归档，请恢复行程后记账')
+      if (trip.currentMemberStatus !== 'active') throw new Error('你当前只能查看这个行程的账单')
       const expense = this.data.expenseId ? await repository.getExpense(this.data.expenseId) : null
+      if (expense && !expense.canEdit) throw new Error('这笔账单当前只允许查看')
       const historicalMemberIds = new Set(expense ? [expense.payerMemberId, ...Object.keys(expense.shares)] : [])
       trip.members = trip.members.filter((member) => member.status === 'active' || historicalMemberIds.has(member.id)).map((member) => ({ ...member, displayLabel: member.status === 'inactive' ? `${member.displayName}（已停用）` : member.displayName }))
       const saved = this.data.expenseId ? null : wx.getStorageSync(this.draftKey())
-      const participantMemberIds = expense ? Object.keys(expense.shares) : saved && saved.participantMemberIds ? saved.participantMemberIds : trip.members.map((member) => member.id)
-      const units = Object.fromEntries(trip.members.map((member) => [member.id, expense && expense.shareUnits && expense.shareUnits[member.id] ? expense.shareUnits[member.id] : saved && saved.units && saved.units[member.id] ? saved.units[member.id] : 1]))
+      const draftMembers = restoreDraftMembers(trip.members, trip.currentMemberId, saved || {})
+      const participantMemberIds = expense ? Object.keys(expense.shares) : draftMembers.participantMemberIds
+      const units = expense ? Object.fromEntries(trip.members.map((member) => [member.id, expense.shareUnits && expense.shareUnits[member.id] ? expense.shareUnits[member.id] : 1])) : draftMembers.units
       trip.members = trip.members.map((member) => ({ ...member, selected: participantMemberIds.includes(member.id) }))
       const payerId = expense ? expense.payerMemberId : trip.currentMemberId
-      const payerIndex = Math.max(0, trip.members.findIndex((member) => member.id === payerId))
+      const payerIndex = expense ? Math.max(0, trip.members.findIndex((member) => member.id === payerId)) : draftMembers.payerIndex
       this.setData({
-        trip, participantMemberIds, units, payerIndex, ...(saved || {}),
+        ...(saved || {}), trip, participantMemberIds, units, payerIndex, draftNotice: expense ? '' : draftMembers.draftNotice,
         ...(expense ? { amount: money.amountText(expense.originalAmountMinor || expense.amountFen, expense.originalCurrency || 'CNY', false), splitMode: expense.splitMode, category: expense.category, note: expense.note, spentAt: expense.spentAt.slice(0, 10), revision: expense.revision } : {}),
       })
       const baseCurrency = trip.baseCurrency || 'CNY'
@@ -45,9 +51,6 @@ Page({
         actualAmount: fx && fx.mode === 'actual' ? money.amountText(expense.amountFen, baseCurrency, false) : saved && saved.actualAmount || '',
         fxQuote, fxError: '', fxLoading: false,
       })
-      // Restore a payer by identity; old drafts used a positional index.
-      if (!expense && saved && saved.payerMemberId) this.setData({ payerIndex: Math.max(0, trip.members.findIndex((member) => member.id === saved.payerMemberId)) })
-      if (!Number.isInteger(this.data.payerIndex) || !trip.members[this.data.payerIndex]) this.setData({ payerIndex })
       this.updateConversion()
       if (originalCurrency !== baseCurrency && this.data.fxMode === 'auto' && !this.quoteMatches()) this.refreshQuote()
       if (expense) wx.setNavigationBarTitle({ title: '编辑账单' })

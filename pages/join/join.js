@@ -1,18 +1,20 @@
 const repository = require('../../services/repository')
+const { parseInviteCode } = require('../../domain/entry')
 
 Page({
   data: { inviteId: '', invite: null, displayName: '', avatarUrl: '', loading: true, submitting: false, error: '' },
   onLoad(options) { this.initialize(options) },
   goHome() { getApp().globalData.launchInviteCode = ''; wx.reLaunch({ url: '/pages/index/index' }) },
-  async initialize(options) {
+  async initialize(options = {}) {
+    this.setData({ invite: null, loading: true, error: '' })
     let inviteId = options.inviteId || ''
     let launchScene = ''
     try { launchScene = (wx.getLaunchOptionsSync().query || {}).scene || '' } catch (_) {}
     const rawCode = options.code || options.scene || launchScene || getApp().globalData.launchInviteCode || ''
-    const sceneCode = decodeURIComponent(rawCode).replace(/^code=/, '').replace(/\D/g, '').slice(0, 6)
-    if (!inviteId && sceneCode) {
+    if (!inviteId && rawCode) {
       try {
         getApp().globalData.launchInviteCode = ''
+        const sceneCode = parseInviteCode(rawCode)
         const resolved = await repository.resolveInviteCode(sceneCode)
         inviteId = resolved.inviteId
       } catch (error) {
@@ -20,6 +22,7 @@ Page({
       }
     }
     this.setData({ inviteId, error: inviteId ? '' : '邀请链接不完整', loading: Boolean(inviteId) })
+    if (!inviteId) return
     try {
       const profile = await repository.bootstrap()
       if (!profile.profileComplete) {
@@ -35,6 +38,7 @@ Page({
     catch (error) { this.setData({ loading: false, error: error.message }) }
   },
   async join() {
+    if (this.data.loading || this.data.submitting || !this.data.invite) return
     if (!this.data.displayName.trim()) return wx.showToast({ title: '请填写行程昵称', icon: 'none' })
     this.setData({ submitting: true })
     try {

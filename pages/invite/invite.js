@@ -2,8 +2,9 @@ const repository = require('../../services/repository')
 
 Page({
   data: { tripId: '', trip: null, invite: null, loading: true, busy: false, qrLoading: false, qrUrl: '', error: '', canInvite: false },
-  onLoad(options) { this.setData({ tripId: options.tripId || '' }); this.load() },
+  onLoad(options = {}) { this.setData({ tripId: options.tripId || '' }); this.load() },
   async load() {
+    if (!this.data.tripId) return this.setData({ loading: false, error: '行程链接不完整，请返回首页重新打开' })
     this.setData({ loading: true, error: '' })
     try {
       const trip = await repository.getTrip(this.data.tripId)

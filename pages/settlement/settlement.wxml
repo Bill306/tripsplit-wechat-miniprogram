@@ -18,6 +18,6 @@
   <view class="section-title">全员待结余额</view>
   <view class="balance-list"><view wx:for="{{settlement.summary}}" wx:key="memberId" class="balance-row"><view class="member-avatar"><image wx:if="{{item.avatarUrl}}" src="{{item.avatarUrl}}" mode="aspectFill"/><text wx:else>{{item.initial}}</text></view><text class="balance-name">{{item.displayName}}</text><text class="{{item.netClass}}">{{item.netLabel}} {{item.netText}}</text></view></view>
   <view class="page-subtitle settlement-footnote">第 {{settlement.ledgerRevision}} 版账本 · 已扣除此前完成的结算。此处不会代扣或转移资金。</view>
-  <view class="fixed-actions"><button class="secondary-button" bindtap="openTrip">回到账本</button><button wx:if="{{settlement.status === 'preview' && settlement.currentMemberRole === 'owner' && settlement.currentMemberStatus === 'active'}}" class="primary-button" disabled="{{starting}}" loading="{{starting}}" bindtap="start">核对好了，开始结算</button></view>
+  <view class="fixed-actions"><button class="secondary-button" bindtap="openTrip">回到账本</button><button wx:if="{{canStart}}" class="primary-button" disabled="{{starting}}" loading="{{starting}}" bindtap="start">核对好了，开始结算</button></view>
 </view>
 <view wx:else class="page-shell"><journey-nav label="结算"/><view wx:if="{{loading}}" class="page-loading">正在核对大家的账目…</view><view wx:if="{{error}}" class="demo-banner">{{error}}<button class="quiet-button" bindtap="load">重新加载</button></view></view>

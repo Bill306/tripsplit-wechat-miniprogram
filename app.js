@@ -2,8 +2,7 @@ const repository = require('./services/repository')
 
 function inviteCodeFromLaunch(options = {}) {
   const query = options.query || {}
-  const raw = query.scene || query.inviteCode || ''
-  try { return decodeURIComponent(raw).replace(/^code=/, '').replace(/\D/g, '').slice(0, 6) } catch (_) { return '' }
+  return query.scene || query.inviteCode || ''
 }
 
 App({

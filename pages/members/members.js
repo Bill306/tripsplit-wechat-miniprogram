@@ -2,14 +2,15 @@ const repository = require('../../services/repository')
 
 Page({
   data: { tripId: '', trip: null, newName: '', editingId: '', editingName: '', busy: false, loading: true, error: '' },
-  onLoad(options) { this.setData({ tripId: options.tripId }) },
+  onLoad(options = {}) { this.setData({ tripId: options.tripId || '', ...(!options.tripId ? { loading: false, error: '行程链接不完整，请返回首页重新打开' } : {}) }) },
   onShow() { if (this.data.tripId) this.load() },
   async load() {
+    if (!this.data.tripId) return
     this.setData({ loading: true, error: '' })
     try {
       const trip = await repository.getTrip(this.data.tripId)
       trip.members = trip.members.map((member) => ({ ...member, initial: member.displayName.slice(0, 1), isCurrent: member.id === trip.currentMemberId }))
-      trip.canManage = trip.currentMemberRole === 'owner' && trip.currentMemberStatus === 'active'
+      trip.canManage = trip.currentMemberRole === 'owner' && trip.currentMemberStatus === 'active' && trip.status !== 'archived'
       this.setData({ trip })
     }
     catch (error) { this.setData({ error: error.message }) }
@@ -18,13 +19,14 @@ Page({
   updateNewName(event) { this.setData({ newName: event.detail.value }) },
   openInvite() { wx.navigateTo({ url: `/pages/invite/invite?tripId=${this.data.tripId}` }) },
   async chooseAvatar(event) {
+    if (this.data.busy || !this.data.trip || this.data.trip.status === 'archived') return
     this.setData({ busy: true })
     try { await repository.updateMyAvatar(this.data.tripId, event.detail.avatarUrl); await this.load(); wx.showToast({ title: '头像已更新' }) }
     catch (error) { wx.showToast({ title: error.message, icon: 'none' }) }
     finally { this.setData({ busy: false }) }
   },
   async add() {
-    if (!this.data.newName.trim()) return
+    if (this.data.busy || !this.data.trip || !this.data.trip.canManage || !this.data.newName.trim()) return
     this.setData({ busy: true })
     try { await repository.createOfflineMember(this.data.tripId, { displayName: this.data.newName.trim() }); this.setData({ newName: '', busy: false }); await this.load() }
     catch (error) { this.setData({ busy: false }); wx.showToast({ title: error.message, icon: 'none' }) }

@@ -36,19 +36,26 @@ function decorate(settlement, demoMode) {
 }
 
 Page({
-  data: { tripId: '', settlement: null, loading: true, error: '', starting: false, busyId: '', demoMode: repository.mode === 'demo' },
-  onLoad(options) { this.setData({ tripId: options.tripId }) },
+  data: { tripId: '', settlement: null, loading: true, error: '', canStart: false, starting: false, busyId: '', demoMode: repository.mode === 'demo' },
+  onLoad(options = {}) { this.setData({ tripId: options.tripId || '', ...(!options.tripId ? { loading: false, error: '行程链接不完整，请返回首页重新打开' } : {}) }) },
   onShow() { if (this.data.tripId) this.load() },
   async load() {
+    if (!this.data.tripId) return
     this.setData({ loading: true, error: '' })
-    try { this.setData({ settlement: decorate(await repository.getSettlement(this.data.tripId), this.data.demoMode), loading: false }) }
+    try {
+      const [result, trip] = await Promise.all([repository.getSettlement(this.data.tripId), repository.getTrip(this.data.tripId)])
+      const settlement = decorate(result, this.data.demoMode)
+      const canStart = settlement.status === 'preview' && trip.currentMemberRole === 'owner' && trip.currentMemberStatus === 'active' && ['active', 'needs_settlement'].includes(trip.status)
+      if (trip.status === 'archived') settlement.nextAction = '行程已归档，可以查看结算记录。恢复行程后可继续操作。'
+      this.setData({ settlement, canStart, loading: false })
+    }
     catch (error) { this.setData({ loading: false, error: error.message }) }
   },
   async start() {
-    if (this.data.starting) return
+    if (this.data.starting || !this.data.canStart) return
     this.setData({ starting: true })
     wx.showLoading({ title: '生成中' })
-    try { this.setData({ settlement: decorate(await repository.startSettlement(this.data.tripId), this.data.demoMode) }) }
+    try { this.setData({ settlement: decorate(await repository.startSettlement(this.data.tripId), this.data.demoMode), canStart: false }) }
     catch (error) { wx.showToast({ title: error.message, icon: 'none' }) }
     finally { wx.hideLoading(); this.setData({ starting: false }) }
   },
