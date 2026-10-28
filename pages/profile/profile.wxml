@@ -1,40 +1,30 @@
 <view class="page-shell profile-shell">
-  <journey-nav label="{{editMode ? '个人资料' : '开始一段旅行'}}" home="{{editMode || !!error}}"/>
+  <journey-nav wx:if="{{editMode || !!error}}" label="{{editMode ? '个人资料' : '开始一段旅行'}}" home/>
   <view class="login-brand">
-    <image class="login-cat" src="/assets/images/cat-lake-hero.jpg" mode="aspectFill"/>
-    <view class="brand-name">喵喵旅账</view>
+    <view class="brand-lockup"><text class="brand-name sketch-title">喵喵旅账</text><view class="paw-icon brand-paw" aria-hidden="true"></view></view>
     <view class="brand-slogan">和朋友旅行，账目一起记清楚</view>
   </view>
-
-  <view class="login-card">
-    <view class="login-heading">{{editMode ? '让旅伴认出你' : '你好，旅伴。'}}</view>
-    <view class="login-description">{{editMode ? '修改同行伙伴看到的头像和昵称' : '使用当前微信账号快速开始'}}</view>
-
-    <view wx:if="{{!editMode && !loading && !error}}" class="wechat-account-state">
-      <view class="state-icon">✓</view>
-      <view><text>当前微信账号已识别</text><text>无需注册，也不需要输入密码</text></view>
-    </view>
-
-    <button class="avatar-picker" open-type="chooseAvatar" bindchooseavatar="chooseAvatar" disabled="{{loading || submitting}}">
+  <image class="login-cat" src="/assets/images/cat-map-login-v2.jpg" mode="aspectFill" aria-hidden="true"/>
+  <view class="login-card sketch-paper">
+    <view class="paper-tape" aria-hidden="true"></view>
+    <view wx:if="{{editMode}}" class="login-heading sketch-title">让旅伴认出你</view>
+    <button class="avatar-picker" open-type="chooseAvatar" bindchooseavatar="chooseAvatar" disabled="{{loading || submitting}}" aria-label="选择或更换个人头像">
       <view class="avatar-wrap">
         <image wx:if="{{avatarUrl}}" src="{{avatarUrl}}" mode="aspectFill"/>
-        <view wx:else class="avatar-placeholder">🐱</view>
-        <view class="camera-mark">✎</view>
+        <view wx:else class="avatar-placeholder"><view class="paw-icon" aria-hidden="true"></view></view>
+        <view class="camera-mark" aria-hidden="true">✎</view>
       </view>
-      <view class="avatar-copy"><strong>{{avatarUrl ? '头像已选择' : '选择你的头像'}}</strong><text>由你选择，同行成员可见</text></view>
-      <view class="row-arrow">›</view>
+      <view class="avatar-copy"><text class="avatar-title">{{avatarUrl ? '更换你的头像' : '选择你的头像'}}</text><text>让同行的朋友认出你</text></view>
     </button>
-
     <view class="nickname-field">
-      <text class="field-label">微信昵称</text>
-      <input class="nickname-input" type="nickname" maxlength="30" placeholder="点击使用微信昵称" value="{{displayName}}" bindinput="updateName"/>
+      <label class="field-label" for="profile-nickname">微信昵称</label>
+      <input id="profile-nickname" class="nickname-input" type="nickname" maxlength="30" placeholder="点击填写微信昵称" value="{{displayName}}" bindinput="updateName" disabled="{{loading || submitting}}"/>
     </view>
-
+    <view wx:if="{{!editMode && ready && !error}}" class="wechat-account-state"><text class="state-icon">✓</text><text>使用当前微信账号</text></view>
     <view wx:if="{{error}}" class="demo-banner">{{error}}</view>
-    <button wx:if="{{error && !ready}}" class="wechat-login-button" bindtap="retry">重新连接微信身份</button>
-    <button wx:else class="wechat-login-button" loading="{{loading || submitting}}" disabled="{{loading || submitting || !ready}}" bindtap="submit">{{editMode ? '保存资料' : '用当前微信身份开始'}}</button>
-    <view class="privacy-note">头像和昵称仅用于同行成员识别，不会获取手机号或通讯录。</view>
+    <button wx:if="{{error && !ready}}" class="wechat-login-button sketch-button" hover-class="sketch-pressed" bindtap="retry">重新连接微信身份</button>
+    <button wx:else class="wechat-login-button sketch-button" hover-class="sketch-pressed" loading="{{loading || submitting}}" disabled="{{loading || submitting || !ready}}" bindtap="submit"><view wx:if="{{!loading && !submitting}}" class="paw-icon" aria-hidden="true"></view><text>{{editMode ? '保存资料' : '用当前微信身份开始'}}</text></button>
+    <view class="privacy-note">头像和昵称仅用于同行成员识别<br/>不会获取手机号或通讯录</view>
   </view>
-
-  <view wx:if="{{!editMode}}" class="login-footnote">登录后，下次打开将直接进入你的行程</view>
+  <view wx:if="{{!editMode}}" class="login-footnote">下一次，直接回到你的旅行账本</view>
 </view>

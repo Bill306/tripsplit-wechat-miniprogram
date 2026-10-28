@@ -1,3 +1,6 @@
 {
-  "navigationBarTitleText": "微信登录"
+  "navigationBarTitleText": "微信登录",
+  "navigationBarBackgroundColor": "#FAF5EA",
+  "navigationBarTextStyle": "black",
+  "backgroundColor": "#FAF5EA"
 }

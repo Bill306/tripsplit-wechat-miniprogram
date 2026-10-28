@@ -1,0 +1,18 @@
+page { background-color: #faf5ea; background-image: radial-gradient(circle at 20% 30%, rgba(145, 111, 59, .045) 0 1rpx, transparent 2rpx); background-size: 12rpx 14rpx; color: #203f34; }
+.sketch-title { font-family: "STKaiti", "KaiTi", "Songti SC", serif; font-weight: 900; letter-spacing: 2rpx; }
+.sketch-paper { background: #fffcf5; border: 2rpx solid #e6d8be; border-radius: 28rpx 34rpx 26rpx 32rpx; box-shadow: 0 5rpx 0 #eee3cf, 0 12rpx 26rpx rgba(80, 61, 29, .07); }
+.sketch-button { position: relative; display: flex; align-items: center; justify-content: center; gap: 16rpx; min-height: 108rpx; margin: 0; padding: 18rpx 24rpx; border: 4rpx solid #214d3b; border-radius: 48rpx 42rpx 50rpx 40rpx / 42rpx 50rpx 40rpx 48rpx; background-color: #2e7558; background-image: radial-gradient(ellipse at 22% 0, rgba(255,255,255,.12), transparent 65%), linear-gradient(155deg, transparent 40%, rgba(17,57,40,.14)); box-shadow: 0 7rpx 0 #214d3b, 0 12rpx 16rpx rgba(48,64,42,.1), inset 0 0 0 4rpx rgba(255,255,255,.1); color: #fffaf0; font-size: 29rpx; font-weight: 800; line-height: 1.4; overflow: visible; }
+.sketch-button::after { position: absolute; top: 5rpx; right: 6rpx; bottom: 5rpx; left: 6rpx; width: auto; height: auto; border: 2rpx solid rgba(255,250,232,.18); border-radius: 38rpx 43rpx 36rpx 42rpx; transform: rotate(-.4deg); transform-origin: center; pointer-events: none; }
+.sketch-button.sketch-yellow { background-color: #f5cc62; background-image: radial-gradient(ellipse at 25% 0, rgba(255,255,255,.35), transparent 70%); border-color: #c79b39; box-shadow: 0 7rpx 0 #bd8f30, 0 12rpx 16rpx rgba(104,75,26,.08), inset 0 0 0 4rpx #ffe2a0; color: #244f3e; }
+.sketch-button.sketch-yellow::after { border-color: rgba(137,94,29,.22); }
+.sketch-button.sketch-pressed, .sketch-button:active { transform: translateY(4rpx); box-shadow: 0 3rpx 0 #214d3b; }
+.sketch-button.sketch-yellow.sketch-pressed, .sketch-button.sketch-yellow:active { box-shadow: 0 3rpx 0 #bd8f30; }
+.sketch-button[disabled] { background-color: #698c77; color: #faf5ea; border-color: #587262; opacity: .72; box-shadow: 0 4rpx 0 #587262; }
+.sketch-button.sketch-yellow[disabled] { background-color: #e7cf92; color: #4b604b; border-color: #bfaa76; box-shadow: 0 4rpx 0 #bfaa76; }
+.paw-icon { display: inline-block; flex: none; width: 44rpx; height: 44rpx; color: inherit; background-image: radial-gradient(ellipse at 50% 72%, currentColor 0 27%, transparent 29%), radial-gradient(ellipse at 15% 40%, currentColor 0 11%, transparent 13%), radial-gradient(ellipse at 36% 18%, currentColor 0 12%, transparent 14%), radial-gradient(ellipse at 66% 18%, currentColor 0 12%, transparent 14%), radial-gradient(ellipse at 86% 42%, currentColor 0 11%, transparent 13%); transform: rotate(-9deg); }
+.brand-paw { width: 38rpx; height: 38rpx; color: #e9b43d; }
+.button-plus { flex: none; font-size: 48rpx; line-height: 44rpx; font-weight: 600; }
+.cat-paw-rest { position: absolute; top: -18rpx; right: 24rpx; width: 48rpx; height: 32rpx; border: 3rpx solid #b57f38; border-radius: 48% 54% 43% 46%; background: #fff7e5; transform: rotate(12deg); pointer-events: none; }
+.cat-paw-rest::before, .cat-paw-rest::after { content: ""; position: absolute; top: 5rpx; height: 17rpx; width: 8rpx; border-right: 2rpx solid #c28c45; border-radius: 50%; }
+.cat-paw-rest::before { left: 9rpx; }
+.cat-paw-rest::after { left: 23rpx; }

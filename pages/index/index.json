@@ -1,3 +1,6 @@
 {
-  "navigationBarTitleText": "喵喵旅账"
+  "navigationBarTitleText": "喵喵旅账",
+  "navigationBarBackgroundColor": "#FAF5EA",
+  "navigationBarTextStyle": "black",
+  "backgroundColor": "#FAF5EA"
 }

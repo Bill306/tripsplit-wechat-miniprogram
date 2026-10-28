@@ -1,41 +1,36 @@
 <view class="page-shell home-shell">
   <view class="brand-row">
-    <view class="brand-lockup"><view class="brand-mark">🐾</view><view><view class="brand-name">喵喵旅账</view><view class="brand-caption">旅行共享账本</view></view></view>
-    <button class="profile-chip" bindtap="openProfile"><image src="{{profile.avatarUrl}}" mode="aspectFill"/><text>{{profile.displayName}}</text></button>
+    <view class="brand-lockup"><text class="brand-name sketch-title">喵喵旅账</text><view class="paw-icon brand-paw" aria-hidden="true"></view></view>
+    <button class="profile-chip" bindtap="openProfile" aria-label="打开个人资料"><image wx:if="{{profile.avatarUrl}}" src="{{profile.avatarUrl}}" mode="aspectFill"/><view wx:else class="profile-placeholder"><view class="paw-icon" aria-hidden="true"></view></view><text>我的</text></button>
   </view>
-  <view class="hero-card">
-    <image class="hero-image" src="/assets/images/cat-lake-hero.jpg" mode="aspectFill"/>
-    <view class="hero-scrim"></view>
-    <view class="hero-note">和喜欢的猫<br/>一起去看更大的世界～</view>
-    <view class="hero-copy"><view class="hero-kicker">喵喵旅账 · 共享旅行账本</view><view class="hero-title">一起出发，<br/>每笔都清楚。</view></view>
-  </view>
-  <view class="page-subtitle home-subtitle">我的行程 · 记下各自的垫付，最后一起算清。</view>
+  <view class="hero-title sketch-title">一起出发，每笔都清楚<view class="title-underline" aria-hidden="true"></view></view>
+  <image class="hero-image" src="/assets/images/cat-lake-friends-v2.jpg" mode="aspectFill" aria-hidden="true"/>
+  <view class="home-heading"><text class="sketch-title">我的行程</text><text class="home-caption">各自记账，一起算清</text></view>
   <view wx:if="{{loading}}" class="page-loading">正在打开你的旅行账本…</view>
-  <view wx:if="{{mode === 'demo'}}" class="demo-banner">当前为本机演示模式；界面与计算可用，但多人共享需完成云开发配置。</view>
+  <view wx:if="{{mode === 'demo'}}" class="demo-banner">当前为本机演示模式；多人共享需完成云开发配置。</view>
   <view wx:if="{{error}}" class="demo-banner">{{error}}</view>
-  <view wx:if="{{joinCodeOpen}}" class="paper-card join-code-card">
-    <view><view class="join-code-title">输入匹配码</view><view class="muted">请输入行程创建者分享的 6 位数字。</view></view>
-    <input class="join-code-input" type="number" maxlength="6" value="{{inviteCode}}" placeholder="000000" bindinput="updateInviteCode" focus/>
-    <view class="join-code-actions"><button class="join-code-cancel" bindtap="closeJoinCode">取消</button><button class="join-code-confirm" loading="{{joining}}" bindtap="joinWithCode">找到行程</button></view>
+  <view wx:if="{{joinCodeOpen}}" class="paper-card sketch-paper join-code-card">
+    <view class="join-code-title sketch-title">输入行程匹配码</view><view class="muted">填写朋友分享的 6 位数字</view>
+    <input class="join-code-input" type="number" maxlength="6" value="{{inviteCode}}" placeholder="000000" bindinput="updateInviteCode" focus disabled="{{joining}}" aria-label="六位行程匹配码"/>
+    <view class="join-code-actions"><button class="join-code-cancel sketch-button sketch-yellow" hover-class="sketch-pressed" disabled="{{joining}}" bindtap="closeJoinCode">取消</button><button class="join-code-confirm sketch-button" hover-class="sketch-pressed" loading="{{joining}}" disabled="{{joining}}" bindtap="joinWithCode">找到行程</button></view>
   </view>
   <view wx:if="{{trips.length}}" class="trip-list">
     <view wx:for="{{groups}}" wx:key="key" wx:for-item="group" class="trip-group">
-      <view class="group-title">{{group.title}} <text>{{group.trips.length}}</text></view>
-    <button wx:for="{{group.trips}}" wx:key="id" wx:for-item="trip" class="paper-card trip-card" data-id="{{trip.id}}" bindtap="openTrip">
-      <view class="trip-card-head">
-        <view class="trip-identity"><view class="trip-stamp">旅</view><view><view class="trip-name">{{trip.name}}</view><view class="trip-meta">{{trip.destination || '还没填目的地'}} · {{trip.members.length}} 位旅伴</view></view></view>
-        <view class="status-chip">{{trip.statusLabel}}</view>
-      </view>
-      <view class="ticket-line"></view>
-      <view class="trip-metrics">
-        <view><text class="metric-label">总消费</text><text class="metric-value">{{trip.totalAmount}}</text></view>
-        <view class="metric-right"><text class="metric-label">{{trip.myNetLabel}}</text><text class="metric-value {{trip.myNetClass}}">{{trip.myNetAmount}}</text></view>
-      </view>
-    </button>
+      <view class="group-title"><text>{{group.title}}</text><text class="group-count">{{group.trips.length}}</text></view>
+      <button wx:for="{{group.trips}}" wx:key="id" wx:for-item="trip" class="trip-card sketch-paper" hover-class="trip-card-pressed" data-id="{{trip.id}}" bindtap="openTrip">
+        <view class="paper-tape" aria-hidden="true"></view>
+        <image class="trip-thumbnail" src="/assets/images/cat-lake-friends-v2.jpg" mode="aspectFill" aria-hidden="true"/>
+        <view class="trip-body">
+          <view class="trip-card-head"><text class="trip-name sketch-title">{{trip.name}}</text><text class="status-chip status-{{trip.status}}">{{trip.statusLabel}}</text></view>
+          <view wx:if="{{trip.destination}}" class="trip-destination">{{trip.destination}}</view>
+          <view class="trip-members"><view class="member-portraits"><view wx:for="{{trip.members}}" wx:key="id" wx:for-item="member" wx:for-index="memberIndex" wx:if="{{memberIndex < 4}}" class="member-portrait"><image wx:if="{{member.avatarUrl}}" src="{{member.avatarUrl}}" mode="aspectFill"/><text wx:else>{{member.displayName}}</text></view></view><text class="member-count">{{trip.members.length}} 位旅伴</text></view>
+          <view class="ticket-line"></view>
+          <view class="trip-metrics"><view><text class="metric-label">总消费</text><text class="metric-value">{{trip.totalAmount}}</text></view><view class="metric-right"><text class="metric-label">{{trip.myNetLabel}}</text><text class="metric-value {{trip.myNetClass}}">{{trip.myNetAmount}}</text></view></view>
+        </view>
+        <text class="trip-arrow" aria-hidden="true">›</text>
+      </button>
     </view>
   </view>
-  <view wx:elif="{{!loading}}" class="empty-state">
-    <view class="empty-icon">🐈‍⬛</view><view class="empty-title">猫咪还没出发</view><view class="muted">建一个行程，把同行伙伴和每笔费用放在一起。</view>
-  </view>
-  <view class="fixed-actions"><button class="secondary-button" bindtap="openJoinCode">加入行程</button><button class="primary-button" bindtap="createTrip">＋ 创建行程</button></view>
+  <view wx:elif="{{!loading && !error}}" class="empty-state sketch-paper"><view class="paw-icon empty-paw" aria-hidden="true"></view><view class="empty-title sketch-title">下一站，和朋友一起</view><view class="muted">创建一个行程，或输入朋友的匹配码<br/>把旅途中的每笔费用记在一起</view></view>
+  <view class="fixed-actions home-actions"><button class="secondary-button sketch-button sketch-yellow" hover-class="sketch-pressed" disabled="{{loading || joining}}" bindtap="openJoinCode"><view class="paw-icon" aria-hidden="true"></view><text>加入行程</text></button><button class="primary-button sketch-button" hover-class="sketch-pressed" disabled="{{loading}}" bindtap="createTrip"><view class="cat-paw-rest" aria-hidden="true"></view><text class="button-plus" aria-hidden="true">＋</text><text>创建行程</text></button></view>
 </view>
