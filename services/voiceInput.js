@@ -15,7 +15,7 @@ function createVoiceInput(loadPlugin, schedule = setTimeout, unschedule = clearT
   return {
     start(handlers) {
       if (quarantined) throw new Error('录音服务未响应，请重新进入小程序或使用文字输入')
-      if (active) throw new Error('上一段录音仍在结束，请稍后再试')
+      if (active) throw new Error('上一段录音还在处理中，请稍等')
       if (!manager) {
         manager = loadPlugin().getRecordRecognitionManager()
         manager.onStop = (res) => finish(null, res.result)
@@ -43,7 +43,7 @@ function createVoiceInput(loadPlugin, schedule = setTimeout, unschedule = clearT
   }
 }
 const singleton = createVoiceInput(() => {
-  if (!config.enabled) throw new Error('语音服务尚未启用，可先输入一句话生成草稿')
+  if (!config.enabled) throw new Error('暂时无法录音，请打字描述这笔花销')
   return requirePlugin(config.pluginName)
 })
 module.exports = { createVoiceInput, start: (handlers) => singleton.start(handlers), stop: (cancelled) => singleton.stop(cancelled) }

@@ -120,7 +120,7 @@ Page({
   onUnload() { this.fxRequestNo = (this.fxRequestNo || 0) + 1; this.voiceDisposed = true; this.cancelVoice() },
   startVoice(event) {
     if (this.data.submitting || this.data.voiceApplying || this.data.voiceState !== 'idle') return
-    if (!this.data.voiceEnabled) return this.setData({ voiceError: '语音服务尚未启用，可先输入一句话生成草稿' })
+    if (!this.data.voiceEnabled) return this.setData({ voiceError: '暂时无法录音，请打字描述这笔花销' })
     this.voiceStartY = event.touches && event.touches[0] && event.touches[0].clientY
     this.setData({ voiceState: 'recording', voiceCancel: false, voiceError: '' })
     try {
@@ -162,12 +162,12 @@ Page({
     this.setData({ voiceApplying: true })
     try {
       if (this.data.amount || this.data.note) {
-        const answer = await new Promise((resolve) => wx.showModal({ title: '替换当前草稿？', content: '将替换金额、币种、分类和备注；付款人、分摊成员保持不变。尚未保存账单。', success: resolve, fail: () => resolve({ confirm: false }) }))
+        const answer = await new Promise((resolve) => wx.showModal({ title: '使用这次识别的内容？', content: '将更新金额、币种、分类和备注，保留已选的付款人和分摊成员。核对后还需要点击「确认记账」。', success: resolve, fail: () => resolve({ confirm: false }) }))
         if (!answer.confirm || this.voiceDisposed) return
       }
       this.persistDraft({ amount: draft.amount, originalCurrency: draft.originalCurrency, currencyIndex: money.CURRENCIES.findIndex((c) => c.code === draft.originalCurrency), category: draft.category, note: draft.note, spentAt: draft.spentAt || this.data.spentAt, fxMode: 'auto', fxQuote: null, fxRate: '', actualAmount: '', fxError: '', voiceDraft: null })
       this.refreshQuote()
-      wx.showToast({ title: '已填入，请核对后确认记账', icon: 'none' })
+      wx.showToast({ title: '已填入，请核对后保存', icon: 'none' })
     } finally { if (!this.voiceDisposed) this.setData({ voiceApplying: false }) }
   },
   changePayer(event) { this.persistDraft({ payerIndex: Number(event.detail.value) }) },
@@ -208,7 +208,7 @@ Page({
       wx.navigateBack()
     } catch (error) {
       if (error.code === 'REVISION_CONFLICT') {
-        const result = await new Promise((resolve) => wx.showModal({ title: '账单已被别人修改', content: '重新载入最新版本后再编辑，当前未提交内容不会覆盖云端账单。', confirmText: '重新载入', cancelText: '先保留', success: resolve }))
+        const result = await new Promise((resolve) => wx.showModal({ title: '账单已被别人修改', content: '你的修改尚未保存。重新加载会显示最新账单，并清除这次未保存的修改。', confirmText: '重新加载', cancelText: '继续查看', success: resolve }))
         if (result.confirm) await this.loadTrip()
       } else wx.showToast({ title: error.message, icon: 'none', duration: 2500 })
       this.setData({ submitting: false })

@@ -1,12 +1,12 @@
 <view class="page-shell">
   <journey-nav label="加入行程"/>
-  <view class="page-title">{{invite ? invite.tripName : '加入这次旅行'}}</view><view class="page-subtitle" wx:if="{{invite}}">{{invite.ownerName}} 邀请你加入 · 已有 {{invite.memberCount}} 人<text wx:if="{{invite.destination}}"> · {{invite.destination}}</text></view><view class="page-subtitle" wx:else>加入后，你可以和同行伙伴一起查看和记录账单。</view>
-  <view class="illustration-banner join-banner"><image src="/assets/images/cat-lake-hero.jpg" mode="aspectFill"/><view class="tape-label">叫上小伙伴，一起去看世界吧！</view></view>
+  <view class="page-title">{{invite ? invite.tripName : '加入行程'}}</view><view class="page-subtitle" wx:if="{{invite}}">{{invite.ownerName}} 邀请你加入 · 已有 {{invite.memberCount}} 人<text wx:if="{{invite.destination}}"> · {{invite.destination}}</text></view><view class="page-subtitle" wx:else>和朋友一起记录旅行开销。</view>
+  <view class="illustration-banner join-banner"><image src="/assets/images/cat-lake-hero.jpg" mode="aspectFill"/><view class="tape-label">这次旅行，一起记账</view></view>
   <view wx:if="{{loading}}" class="page-loading">正在查看邀请…</view>
   <view wx:if="{{error}}" class="demo-banner">{{error}}<view wx:if="{{!invite}}">可请创建者重新分享邀请，或返回首页输入匹配码。</view></view>
-  <view wx:if="{{invite && profileError}}" class="demo-banner">{{profileError}}<button class="quiet-button identity-retry" bindtap="loadIdentity" loading="{{profileLoading}}">重新连接微信身份</button></view>
-  <view wx:if="{{invite && identityExpanded}}" class="paper-card nickname-card"><label class="field-label" for="join-nickname">填写昵称，让旅伴认出你</label><input id="join-nickname" class="field-input join-nickname" type="nickname" maxlength="30" value="{{displayName}}" bindinput="updateName" placeholder="点击填写微信昵称" focus="{{identityExpanded}}" disabled="{{submitting}}"/><view class="muted nickname-note">头像可以在加入后前往「我的」补充。</view></view>
-  <view wx:elif="{{invite && displayName}}" class="join-identity"><image wx:if="{{avatarUrl}}" src="{{avatarUrl}}" mode="aspectFill"/><view wx:else class="join-avatar-placeholder" aria-hidden="true">旅</view><view><strong>{{displayName}}</strong><text>将使用此昵称加入，头像可在个人资料中更换</text></view></view>
-  <view wx:if="{{invite}}" class="journey-note">加入后可以查看这次旅行的全部账单，并记录自己的垫付。加入不会扣款。</view>
+  <view wx:if="{{invite && profileError}}" class="demo-banner">{{profileError}}<button class="quiet-button identity-retry" bindtap="loadIdentity" loading="{{profileLoading}}">重新登录</button></view>
+  <view wx:if="{{invite && identityExpanded}}" class="paper-card nickname-card"><label class="field-label" for="join-nickname">你的昵称</label><input id="join-nickname" class="field-input join-nickname" type="nickname" maxlength="30" value="{{displayName}}" bindinput="updateName" placeholder="填写朋友熟悉的名字" focus="{{identityExpanded}}" disabled="{{submitting}}"/><view class="muted nickname-note">加入后可以在「我的」添加头像。</view></view>
+  <view wx:elif="{{invite && displayName}}" class="join-identity"><image wx:if="{{avatarUrl}}" src="{{avatarUrl}}" mode="aspectFill"/><view wx:else class="join-avatar-placeholder" aria-hidden="true">旅</view><view><strong>{{displayName}}</strong><text>朋友会看到这个昵称</text></view></view>
+  <view wx:if="{{invite}}" class="journey-note">加入后，大家可以一起记账、查看全部账单。</view>
   <view class="fixed-actions"><button wx:if="{{error}}" class="secondary-button" bindtap="goHome">回到首页</button><button class="primary-button join-submit" loading="{{submitting || loading || profileLoading}}" disabled="{{submitting || loading || !invite || !profileReady}}" bindtap="join">{{identityExpanded ? '确认加入行程' : '加入行程'}}</button></view>
 </view>

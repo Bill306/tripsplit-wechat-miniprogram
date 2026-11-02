@@ -45,7 +45,7 @@ Page({
     const displayName = this.data.displayName.trim()
     if (!displayName) {
       if (!this.data.identityExpanded) return this.setData({ identityExpanded: true })
-      return wx.showToast({ title: '请填写昵称，让旅伴认出你', icon: 'none' })
+      return wx.showToast({ title: '请填写昵称', icon: 'none' })
     }
     this.setData({ submitting: true, error: '' })
     try {

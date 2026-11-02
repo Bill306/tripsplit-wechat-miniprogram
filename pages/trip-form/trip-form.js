@@ -59,7 +59,7 @@ Page({
     }
   },
   async archive() {
-    const confirmed = await new Promise((resolve) => wx.showModal({ title: '归档这次行程？', content: '归档后账本只读，以后仍可恢复。', success: (result) => resolve(result.confirm) }))
+    const confirmed = await new Promise((resolve) => wx.showModal({ title: '归档这次行程？', content: '归档后只能查看账单，需要记账时可以恢复行程。', success: (result) => resolve(result.confirm) }))
     if (!confirmed) return
     try { await repository.archiveTrip(this.data.id); wx.navigateBack() }
     catch (error) { wx.showToast({ title: error.message, icon: 'none' }) }

@@ -3,16 +3,16 @@
     <view class="brand-lockup"><text class="brand-name sketch-title">喵喵旅账</text><view class="paw-icon brand-paw" aria-hidden="true"></view></view>
     <button class="profile-chip" bindtap="openProfile" aria-label="打开个人资料"><image wx:if="{{profile.avatarUrl}}" src="{{profile.avatarUrl}}" mode="aspectFill"/><view wx:else class="profile-placeholder"><view class="paw-icon" aria-hidden="true"></view></view><text>我的</text></button>
   </view>
-  <view class="hero-title sketch-title">一起出发，每笔都清楚<view class="title-underline" aria-hidden="true"></view></view>
+  <view class="hero-title sketch-title">这次和朋友去哪里？<view class="title-underline" aria-hidden="true"></view></view>
   <image class="hero-image" src="/assets/images/cat-lake-friends-v2.jpg" mode="aspectFill" aria-hidden="true"/>
-  <view class="home-heading"><text class="sketch-title">我的行程</text><text class="home-caption">各自记账，一起算清</text></view>
-  <view wx:if="{{loading}}" class="page-loading">正在打开你的旅行账本…</view>
-  <view wx:if="{{mode === 'demo'}}" class="demo-banner">当前为本机演示模式；多人共享需完成云开发配置。</view>
+  <view class="home-heading"><text class="sketch-title">我的行程</text><text class="home-caption">和旅伴共享账单</text></view>
+  <view wx:if="{{loading}}" class="page-loading">正在加载行程…</view>
+  <view wx:if="{{mode === 'demo'}}" class="demo-banner">演示模式：账单仅保存在这台设备上，暂不支持多人共享。</view>
   <view wx:if="{{error}}" class="demo-banner">{{error}}</view>
   <view wx:if="{{joinCodeOpen}}" class="paper-card sketch-paper join-code-card">
     <view class="join-code-title sketch-title">输入行程匹配码</view><view class="muted">填写朋友分享的 6 位数字</view>
     <input class="join-code-input" type="number" maxlength="6" value="{{inviteCode}}" placeholder="000000" bindinput="updateInviteCode" focus disabled="{{joining}}" aria-label="六位行程匹配码"/>
-    <view class="join-code-actions"><button class="join-code-cancel sketch-button sketch-yellow" hover-class="sketch-pressed" disabled="{{joining}}" bindtap="closeJoinCode">取消</button><button class="join-code-confirm sketch-button" hover-class="sketch-pressed" loading="{{joining}}" disabled="{{joining}}" bindtap="joinWithCode">找到行程</button></view>
+    <view class="join-code-actions"><button class="join-code-cancel sketch-button sketch-yellow" hover-class="sketch-pressed" disabled="{{joining}}" bindtap="closeJoinCode">取消</button><button class="join-code-confirm sketch-button" hover-class="sketch-pressed" loading="{{joining}}" disabled="{{joining}}" bindtap="joinWithCode">查看行程</button></view>
   </view>
   <view wx:if="{{trips.length}}" class="trip-list">
     <view wx:for="{{groups}}" wx:key="key" wx:for-item="group" class="trip-group">
@@ -31,6 +31,6 @@
       </button>
     </view>
   </view>
-  <view wx:elif="{{!loading && !error}}" class="empty-state sketch-paper"><view class="paw-icon empty-paw" aria-hidden="true"></view><view class="empty-title sketch-title">下一站，和朋友一起</view><view class="muted">创建一个行程，或输入朋友的匹配码<br/>把旅途中的每笔费用记在一起</view></view>
+  <view wx:elif="{{!loading && !error}}" class="empty-state sketch-paper"><view class="paw-icon empty-paw" aria-hidden="true"></view><view class="empty-title sketch-title">还没有行程</view><view class="muted">创建行程开始记账<br/>朋友已经创建了？输入匹配码加入</view></view>
   <view class="fixed-actions home-actions"><button class="secondary-button sketch-button sketch-yellow" hover-class="sketch-pressed" disabled="{{loading || joining}}" bindtap="openJoinCode"><view class="paw-icon" aria-hidden="true"></view><text>加入行程</text></button><button class="primary-button sketch-button" hover-class="sketch-pressed" disabled="{{loading}}" bindtap="createTrip"><view class="cat-paw-rest" aria-hidden="true"></view><text class="button-plus" aria-hidden="true">＋</text><text>创建行程</text></button></view>
 </view>

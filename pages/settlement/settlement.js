@@ -13,18 +13,18 @@ function decorate(settlement, demoMode) {
     myPayText: formatFen(unpaid),
     myReceiveText: formatFen(unreceived),
     receivedCount: settlement.transfers.filter((item) => item.status === 'received').length,
-    nextAction: settlement.status === 'preview' ? (settlement.currentMemberRole === 'owner' ? '先核对账单，再生成结算清单。现在无需转账。' : '等待创建者生成结算清单，现在无需转账。')
-      : settlement.status === 'completed' ? '这轮结算已完成，所有收款都已确认。'
-        : toConfirm ? '有旅伴已标记付款。请先检查微信或银行是否到账，再确认收款。'
+    nextAction: settlement.status === 'preview' ? (settlement.currentMemberRole === 'owner' ? '确认账单无误后，点击「开始结算」。' : '等待创建者开始结算。')
+      : settlement.status === 'completed' ? '大家都已确认收款。'
+        : toConfirm ? '有朋友标记了已转账，请查到账后点击「确认已到账」。'
           : unpaid ? '先到微信聊天或银行完成转账，再回来标记「我已转账」。'
-            : awaiting ? '你已标记付款，等待对方核实并确认收款。'
-              : unreceived ? '等待旅伴实际付款；对方标记后，你再确认到账。' : '你暂时没有待操作的转账，可查看其他旅伴的进度。',
+            : awaiting ? '等待对方确认收款。'
+              : unreceived ? '等待朋友转账，到账后记得确认。' : '你目前没有需要处理的转账。',
     statusLabel: { preview: '预览', active: '确认中', completed: '已完成' }[settlement.status] || settlement.status,
     summary: settlement.summary.map((item) => ({ ...item, initial: item.displayName.slice(0, 1), netText: formatFen(Math.abs(item.netAmount)), netLabel: item.netAmount >= 0 ? '应收' : '应付', netClass: item.netAmount >= 0 ? 'amount-positive' : 'amount-negative' })),
     transfers: settlement.transfers.map((item) => ({
       ...item,
       amountText: formatFen(item.amountFen),
-      statusLabel: { pending: '待付款方转账', paid: '付款方已标记 · 待确认到账', received: '双方已确认' }[item.status],
+      statusLabel: { pending: '待转账', paid: '已标记付款，待收款人确认', received: '已确认收款' }[item.status],
       isMine: item.fromMemberId === settlement.currentMemberId || item.toMemberId === settlement.currentMemberId,
       fromLabel: item.fromMemberId === settlement.currentMemberId ? `${item.fromName}（我）` : item.fromName,
       toLabel: item.toMemberId === settlement.currentMemberId ? `${item.toName}（我）` : item.toName,
@@ -73,7 +73,7 @@ Page({
     try {
       const confirmed = await new Promise((resolve) => wx.showModal({
         title: status === 'paid' ? '已在微信或银行完成转账？' : status === 'received' ? '确认这笔钱已经到账？' : '撤销付款标记？',
-        content: `${transfer.fromName} → ${transfer.toName} ${transfer.amountText}。${status === 'paid' ? '此操作只记录付款状态，不会扣款或发起转账。未实际付款请取消。' : status === 'received' ? '请以实际到账记录为准；确认后会计入已完成结算。' : '只撤销账本中的标记，不会退回已转出的资金。'}`,
+        content: `${transfer.fromName} → ${transfer.toName} ${transfer.amountText}。${status === 'paid' ? '请确认已经转账。这里仅更新记录，不会扣款。' : status === 'received' ? '请核对微信或银行的到账记录，确认后这笔款项就结清了。' : '撤销后会显示为待转账，已转出的款项不会退回。'}`,
         confirmText: status === 'paid' ? '已转账' : status === 'received' ? '已到账' : '撤销标记',
         success: (result) => resolve(result.confirm), fail: () => resolve(false),
       }))

@@ -44,14 +44,14 @@ function parseVoiceExpense(value, today) {
   const text = String(value || '').trim().replace(/[０-９]/g, (c) => String(c.charCodeAt(0) - 65296)).replace(/．/g, '.')
   const issues = []; const warnings = []
   const result = { text, amount: '', originalCurrency: '', category: 'other', note: text.slice(0, 100), spentAt: '', issues, warnings, ready: false }
-  if (!text || text.length > 300) { issues.push('请说一笔消费，文字长度不超过 300 字'); return result }
-  if (/退款|退了|退回|退货|收入|返现|负|减去|找零|找回|[-−]\s*\d/.test(text)) issues.push('退款或减项请手动核对，首版只识别单笔正数支出')
-  if (/大约|大概|左右|多[元块]|几|几十|几百|上千|不到|差不多|至少|最多|至|到\s*\d|[~～]/.test(text)) issues.push('请给出确定金额，不使用范围或约数')
+  if (!text || text.length > 300) { issues.push('请描述一笔花销，最多 300 字'); return result }
+  if (/退款|退了|退回|退货|收入|返现|负|减去|找零|找回|[-−]\s*\d/.test(text)) issues.push('暂时只能识别支出金额，请填写扣除退款或找零后的实际花费')
+  if (/大约|大概|左右|多[元块]|几|几十|几百|上千|不到|差不多|至少|最多|至|到\s*\d|[~～]/.test(text)) issues.push('请说出准确金额，例如“花了 200 元”')
   const monetary = new RegExp(`(${numberPattern})\\s*(${currencyPattern})|(${currencyPattern})\\s*(${numberPattern})`, 'gi')
   const found = [...text.matchAll(monetary)]
   const mentionedCodes = [...text.matchAll(new RegExp(currencyPattern, 'gi'))].map((m) => aliasCode[m[0].toUpperCase()] || aliasCode[m[0]])
   if (!mentionedCodes.length) issues.push('请明确币种，例如“3000 日元”或“200 人民币”')
-  if (new Set(mentionedCodes).size > 1) issues.push('一句话出现多个币种，请一次只记录一笔原币消费')
+  if (new Set(mentionedCodes).size > 1) issues.push('一次只能识别一种货币，请分开记录')
   if (found.length !== 1) issues.push(found.length > 1 ? '出现多个金额，请一次只说一笔消费' : '未识别到明确的金额与币种')
   if (found.length === 1) {
     const match = found[0]
@@ -59,7 +59,7 @@ function parseVoiceExpense(value, today) {
     result.originalCurrency = aliasCode[name.toUpperCase()] || aliasCode[name]
     // Do not silently ignore more numbers (e.g. 300、200 日元 or 3 人每人 100 元).
     const rest = text.slice(0, match.index) + text.slice(match.index + match[0].length)
-    if (/\d|[零〇一二两三四五六七八九十百千万]/.test(rest.replace(/一共|一起|前天|昨天|今天/g, ''))) issues.push('还有其他数字，请核对总额、人数或日期后手动填写')
+    if (/\d|[零〇一二两三四五六七八九十百千万]/.test(rest.replace(/一共|一起|前天|昨天|今天/g, ''))) issues.push('这句话里还有其他数字，请直接填写这笔消费的总金额')
     try { result.amount = money.amountText(money.parseAmount(numberText(raw), result.originalCurrency), result.originalCurrency, false) }
     catch (error) { issues.push(error.message) }
   }
@@ -69,17 +69,17 @@ function parseVoiceExpense(value, today) {
     ['stay', /住宿|酒店|民宿|房费/], ['ticket', /门票|景点|博物馆/], ['shopping', /购物|买衣服|纪念品|超市/],
   ].filter(([, pattern]) => pattern.test(text))
   if (categories.length === 1) result.category = categories[0][0]
-  else warnings.push(categories.length ? '分类不明确，暂选“其他”' : '未识别分类，暂选“其他”')
+  else warnings.push(categories.length ? '无法确定分类，已选“其他”，可以修改' : '没有识别出分类，已选“其他”，可以修改')
   const dateWords = ['今天', '昨天', '前天'].filter((word) => text.includes(word))
   if (dateWords.length > 1 || /明天|后天|上周|上个|上月|\d+[年月日号]|[一二三四五六七八九十]+[年月日号]/.test(text)) {
-    warnings.push('日期需在表单中手动核对')
+    warnings.push('请在下方核对消费日期')
   } else if (/^\d{4}-\d{2}-\d{2}$/.test(today || '')) {
     const offset = dateWords[0] === '昨天' ? 1 : dateWords[0] === '前天' ? 2 : 0
     const date = new Date(`${today}T12:00:00Z`)
     if (Number.isFinite(date.getTime())) { date.setUTCDate(date.getUTCDate() - offset); result.spentAt = date.toISOString().slice(0, 10) }
     if (!dateWords.length) warnings.push('未说日期，暂按今天填写')
   }
-  warnings.push('付款人和分摊成员保留当前选择，请核对')
+  warnings.push('请核对下方的付款人和分摊成员')
   result.ready = issues.length === 0
   return result
 }

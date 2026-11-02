@@ -42,7 +42,7 @@ Page({
   async submit() {
     if (!this.data.ready || this.data.submitting) return
     const displayName = this.data.displayName.trim()
-    if (!displayName) return wx.showToast({ title: '请填写微信昵称', icon: 'none' })
+    if (!displayName) return wx.showToast({ title: '请填写昵称', icon: 'none' })
     this.setData({ submitting: true, error: '' })
     try {
       const avatarUrl = this.data.hasNewAvatar ? await repository.uploadAvatar(this.data.avatarUrl) : this.data.avatarUrl

@@ -1,30 +1,30 @@
 <view class="page-shell profile-shell">
-  <journey-nav wx:if="{{editMode || !!error}}" label="{{editMode ? '个人资料' : '开始一段旅行'}}" home/>
+  <journey-nav wx:if="{{editMode || !!error}}" label="{{editMode ? '个人资料' : '微信登录'}}" home/>
   <view class="login-brand">
     <view class="brand-lockup"><text class="brand-name sketch-title">喵喵旅账</text><view class="paw-icon brand-paw" aria-hidden="true"></view></view>
-    <view class="brand-slogan">和朋友旅行，账目一起记清楚</view>
+    <view class="brand-slogan">和朋友一起记旅行账</view>
   </view>
   <image class="login-cat" src="/assets/images/cat-map-login-v2.jpg" mode="aspectFill" aria-hidden="true"/>
   <view class="login-card sketch-paper">
     <view class="paper-tape" aria-hidden="true"></view>
-    <view wx:if="{{editMode}}" class="login-heading sketch-title">让旅伴认出你</view>
+    <view wx:if="{{editMode}}" class="login-heading sketch-title">个人资料</view>
     <button class="avatar-picker" open-type="chooseAvatar" bindchooseavatar="chooseAvatar" disabled="{{loading || submitting}}" aria-label="选择或更换个人头像">
       <view class="avatar-wrap">
         <image wx:if="{{avatarUrl}}" src="{{avatarUrl}}" mode="aspectFill"/>
         <view wx:else class="avatar-placeholder"><view class="paw-icon" aria-hidden="true"></view></view>
         <view class="camera-mark" aria-hidden="true">✎</view>
       </view>
-      <view class="avatar-copy"><text class="avatar-title">{{avatarUrl ? '更换你的头像' : '添加头像（选填）'}}</text><text>{{avatarUrl ? '让同行的朋友认出你' : '填写昵称即可开始，头像可以稍后补充'}}</text></view>
+      <view class="avatar-copy"><text class="avatar-title">{{avatarUrl ? '更换头像' : '添加头像（选填）'}}</text><text>{{avatarUrl ? '同行的朋友会看到这个头像' : '也可以以后再添加'}}</text></view>
     </button>
     <view class="nickname-field">
-      <label class="field-label" for="profile-nickname">微信昵称</label>
-      <input id="profile-nickname" class="nickname-input" type="nickname" maxlength="30" placeholder="点击填写微信昵称" value="{{displayName}}" bindinput="updateName" disabled="{{loading || submitting}}"/>
+      <label class="field-label" for="profile-nickname">昵称</label>
+      <input id="profile-nickname" class="nickname-input" type="nickname" maxlength="30" placeholder="填写朋友熟悉的名字" value="{{displayName}}" bindinput="updateName" disabled="{{loading || submitting}}"/>
     </view>
     <view wx:if="{{!editMode && ready && !error}}" class="wechat-account-state"><text class="state-icon">✓</text><text>使用当前微信账号</text></view>
     <view wx:if="{{error}}" class="demo-banner">{{error}}</view>
-    <button wx:if="{{error && !ready}}" class="wechat-login-button sketch-button" hover-class="sketch-pressed" bindtap="retry">重新连接微信身份</button>
-    <button wx:else class="wechat-login-button sketch-button" hover-class="sketch-pressed" loading="{{loading || submitting}}" disabled="{{loading || submitting || !ready}}" bindtap="submit"><view wx:if="{{!loading && !submitting}}" class="paw-icon" aria-hidden="true"></view><text>{{editMode ? '保存资料' : '用当前微信身份开始'}}</text></button>
-    <view class="privacy-note">头像和昵称仅用于同行成员识别<br/>不会获取手机号或通讯录</view>
+    <button wx:if="{{error && !ready}}" class="wechat-login-button sketch-button" hover-class="sketch-pressed" bindtap="retry">重新登录</button>
+    <button wx:else class="wechat-login-button sketch-button" hover-class="sketch-pressed" loading="{{loading || submitting}}" disabled="{{loading || submitting || !ready}}" bindtap="submit"><view wx:if="{{!loading && !submitting}}" class="paw-icon" aria-hidden="true"></view><text>{{editMode ? '保存资料' : '开始使用'}}</text></button>
+    <view class="privacy-note">头像和昵称会展示给同行成员<br/>不获取手机号和通讯录</view>
   </view>
-  <view wx:if="{{!editMode}}" class="login-footnote">下一次，直接回到你的旅行账本</view>
+  <view wx:if="{{!editMode}}" class="login-footnote">下次打开会自动登录</view>
 </view>
