@@ -2,6 +2,7 @@
 .date-row .field { flex: 1; }
 .identity-summary { display: flex; align-items: center; gap: 18rpx; margin-top: 28rpx; padding: 18rpx 22rpx; background: #f7edcf; border: 2rpx dashed #c9a84c; border-radius: 20rpx; }
 .identity-summary image { width: 72rpx; height: 72rpx; border: 4rpx solid #fffaf0; border-radius: 50%; }
+.identity-placeholder { display: flex; align-items: center; justify-content: center; flex: none; width: 72rpx; height: 72rpx; border: 4rpx solid #fffaf0; border-radius: 50%; background: #e5dfc2; color: #355842; font-size: 30rpx; }
 .identity-summary text { display: block; font-weight: 800; }
 .identity-summary text + text { margin-top: 6rpx; color: #6e7c75; font-size: 21rpx; font-weight: 500; }
 .date-row .field-picker { font-size: 26rpx; }

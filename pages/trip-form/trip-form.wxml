@@ -12,7 +12,7 @@
     <view class="field"><text class="field-label">开始日期</text><picker mode="date" value="{{startDate}}" data-field="startDate" bindchange="updateField"><view class="field-picker">{{startDate || '选择日期'}}</view></picker></view>
     <view class="field"><text class="field-label">结束日期</text><picker mode="date" value="{{endDate}}" data-field="endDate" bindchange="updateField"><view class="field-picker">{{endDate || '选择日期'}}</view></picker></view>
   </view>
-  <block wx:if="{{!id}}"><view class="identity-summary"><image src="{{profileAvatarUrl}}" mode="aspectFill"/><view><text>以 {{ownerName}} 的身份创建</text><text>头像和昵称来自你的微信身份</text></view></view>
+  <block wx:if="{{!id}}"><view class="identity-summary"><image wx:if="{{profileAvatarUrl}}" src="{{profileAvatarUrl}}" mode="aspectFill"/><view wx:else class="identity-placeholder" aria-hidden="true">旅</view><view><text>以 {{ownerName}} 的身份创建</text><text>可在「我的」修改昵称和头像</text></view></view>
   <view class="field"><text class="field-label">代记账的离线旅伴（可选）</text><textarea class="field-textarea" placeholder="用逗号或换行分开，例如：小明，小红" value="{{companionsText}}" data-field="companionsText" bindinput="updateField"/></view><view class="journey-note">朋友会自己用微信记账？这里先不填，创建后点「邀请旅伴」，让他们用自己的微信加入。</view></block>
   <view class="fixed-actions"><button wx:if="{{id && trip.status !== 'archived'}}" class="danger-button" bindtap="archive">归档</button><button class="primary-button" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submit">{{id ? '保存设置' : '创建行程'}}</button></view>
   </block>

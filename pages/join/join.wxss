@@ -1,7 +1,9 @@
-.join-banner { height: 340rpx; margin-top: 32rpx; }
+.join-banner { height: 230rpx; margin-top: 32rpx; }
 .join-identity { display: flex; align-items: center; gap: 20rpx; padding: 22rpx; background: #f7edcf; border: 2rpx dashed #c9a84c; border-radius: 22rpx; }
 .join-identity image { width: 82rpx; height: 82rpx; border: 4rpx solid #fffaf0; border-radius: 50%; }
 .join-identity strong, .join-identity text { display: block; }
 .join-identity strong { font-size: 29rpx; }
 .join-identity text { margin-top: 8rpx; color: #6e7c75; font-size: 22rpx; }
-.join-banner { height: 230rpx; }
+.join-avatar-placeholder { display: flex; align-items: center; justify-content: center; flex: none; width: 82rpx; height: 82rpx; border: 4rpx solid #fffaf0; border-radius: 50%; background: #e5dfc2; color: #355842; font-size: 32rpx; }
+.nickname-note { margin-top: 18rpx; font-size: 24rpx; line-height: 1.6; }
+.identity-retry { margin-top: 16rpx; }

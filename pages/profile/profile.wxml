@@ -14,7 +14,7 @@
         <view wx:else class="avatar-placeholder"><view class="paw-icon" aria-hidden="true"></view></view>
         <view class="camera-mark" aria-hidden="true">✎</view>
       </view>
-      <view class="avatar-copy"><text class="avatar-title">{{avatarUrl ? '更换你的头像' : '选择你的头像'}}</text><text>让同行的朋友认出你</text></view>
+      <view class="avatar-copy"><text class="avatar-title">{{avatarUrl ? '更换你的头像' : '添加头像（选填）'}}</text><text>{{avatarUrl ? '让同行的朋友认出你' : '填写昵称即可开始，头像可以稍后补充'}}</text></view>
     </button>
     <view class="nickname-field">
       <label class="field-label" for="profile-nickname">微信昵称</label>

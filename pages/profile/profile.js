@@ -23,6 +23,7 @@ Page({
     try {
       const redirect = profileDestination(options.redirect, launchInviteCode)
       this.setData({ redirect })
+      if (!editMode && redirect.split('?')[0] === '/pages/join/join') return wx.redirectTo({ url: redirect })
       const profile = await repository.bootstrap()
       getApp().globalData.profile = profile
       if (profile.profileComplete && !editMode) return wx.reLaunch({ url: redirect })
@@ -41,7 +42,6 @@ Page({
   async submit() {
     if (!this.data.ready || this.data.submitting) return
     const displayName = this.data.displayName.trim()
-    if (!this.data.avatarUrl) return wx.showToast({ title: '请先选择微信头像', icon: 'none' })
     if (!displayName) return wx.showToast({ title: '请填写微信昵称', icon: 'none' })
     this.setData({ submitting: true, error: '' })
     try {

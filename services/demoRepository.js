@@ -74,7 +74,7 @@ function validateExpenseFields(input) {
 async function bootstrap() {
   const state = load()
   save(state)
-  return { mode: 'demo', ...clone(state.profile) }
+  return { mode: 'demo', ...clone(state.profile), profileComplete: Boolean(String(state.profile.displayName || '').trim()) }
 }
 
 async function updateProfile(input) {
@@ -82,7 +82,6 @@ async function updateProfile(input) {
   const displayName = String(input.displayName || '').trim()
   const avatarUrl = String(input.avatarUrl || '')
   if (!displayName || displayName.length > 30) throw new Error('昵称需为 1 至 30 字')
-  if (!avatarUrl) throw new Error('请选择微信头像')
   state.profile = { userId: CURRENT_USER_ID, displayName, avatarUrl, profileComplete: true, updatedAt: now() }
   state.members.filter((member) => member.userId === CURRENT_USER_ID).forEach((member) => {
     member.displayName = displayName
@@ -323,7 +322,7 @@ async function updateMyAvatar(tripId, tempFilePath) {
   if (!member || member.status !== 'active') throw new Error('你不是该行程的活跃成员')
   member.avatarUrl = tempFilePath
   state.profile.avatarUrl = tempFilePath
-  state.profile.profileComplete = Boolean(state.profile.displayName && tempFilePath)
+  state.profile.profileComplete = Boolean(state.profile.displayName)
   addAudit(state, tripId, 'member', member.id, 'avatar_updated', '更新个人头像')
   save(state)
   return clone(member)

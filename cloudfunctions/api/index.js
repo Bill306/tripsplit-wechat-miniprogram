@@ -4,6 +4,7 @@ const cloud = require('wx-server-sdk')
 const crypto = require('crypto')
 const money = require('./currency')
 const fxProvider = require('./fxProvider')
+const { normalizeProfile } = require('./profile')
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 // First-time idempotency records, invite memberships and FX quotes are absent
@@ -182,14 +183,11 @@ async function bootstrap(openid) {
     const result = await db.collection(C.users).add({ data: { openid, displayName: '', avatarUrl: '', createdAt } })
     profile = { _id: result._id, openid, displayName: '', avatarUrl: '', createdAt }
   }
-  return { userId: openid, mode: 'cloud', displayName: profile.displayName || '', avatarUrl: profile.avatarUrl || '', profileComplete: Boolean(profile.displayName && profile.avatarUrl) }
+  return { userId: openid, mode: 'cloud', displayName: profile.displayName || '', avatarUrl: profile.avatarUrl || '', profileComplete: Boolean(String(profile.displayName || '').trim()) }
 }
 
 async function updateProfile(openid, input) {
-  const displayName = String(input.displayName || '').trim()
-  const avatarUrl = String(input.avatarUrl || '')
-  assert(displayName && displayName.length <= 30, 'VALIDATION_ERROR', '昵称需为 1 至 30 字')
-  assert(avatarUrl.startsWith('cloud://') && avatarUrl.length <= 500, 'VALIDATION_ERROR', '请选择有效的微信头像')
+  const { displayName, avatarUrl } = normalizeProfile(input)
   const existing = await db.collection(C.users).where({ openid }).limit(1).get()
   const updatedAt = iso()
   if (existing.data[0]) await db.collection(C.users).doc(existing.data[0]._id).update({ data: { displayName, avatarUrl, updatedAt } })
