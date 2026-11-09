@@ -6,7 +6,10 @@ const path = require('node:path')
 const vm = require('node:vm')
 const money = require('../domain/currency')
 
-function pageAt(name, repository, wxOverrides = {}) {
+// Pages load from a trip link, and settlement also reads the trip for owner actions.
+const activeTrip = { status: 'active', currentMemberRole: 'member', currentMemberStatus: 'active' }
+function pageAt(name, tripRepository, wxOverrides = {}) {
+  const repository = { getTrip: async () => ({ ...activeTrip }), ...tripRepository }
   let definition
   const calls = []
   const app = { globalData: {} }
@@ -14,11 +17,12 @@ function pageAt(name, repository, wxOverrides = {}) {
     reLaunch: (v) => calls.push(['reLaunch', v]), redirectTo: (v) => calls.push(['redirectTo', v]),
     showModal: (v) => { calls.push(['modal', v]); v.success({ confirm: false }) }, ...wxOverrides }
   vm.runInNewContext(fs.readFileSync(path.join(__dirname, `../pages/${name}/${name}.js`), 'utf8'), {
-    require: (id) => id.includes('repository') ? repository : money,
+    require: (id) => id.includes('repository') ? repository : require(path.resolve(__dirname, `../pages/${name}`, id)),
     Page: (v) => { definition = v }, wx, getApp: () => app, getCurrentPages: () => [],
   })
   const page = { ...definition, data: JSON.parse(JSON.stringify(definition.data)), calls, app }
   page.setData = (v) => Object.assign(page.data, v)
+  if ('tripId' in page.data) page.data.tripId = 't'
   return page
 }
 function settlement(status = 'pending', currentMemberId = 'a') {
@@ -59,7 +63,7 @@ test('recipient must verify receipt and unrelated user cannot confirm', async ()
   let count = 0
   const page = pageAt('settlement', { mode: 'cloud', getSettlement: async () => settlement('paid', 'b'), updateTransferStatus: async () => { count++; return { ...settlement('received', 'b'), status: 'completed' } } }, { showModal: (v) => v.success({ confirm: true }) })
   await page.load()
-  assert.match(page.data.settlement.nextAction, /检查微信或银行是否到账/)
+  assert.match(page.data.settlement.nextAction, /查到账后点击「确认已到账」/)
   await page.updateStatus(action('received'))
   assert.equal(count, 1)
   assert.equal(page.data.settlement.receivedCount, 1)
@@ -90,6 +94,7 @@ test('ordinary members cannot create invitations through the new screen', async 
   const page = pageAt('invite', { getTrip: async () => ({ currentMemberRole: 'member', currentMemberStatus: 'active', status: 'active' }), getActiveInvite: () => assert.fail('owner only'), createInvite: () => assert.fail('owner only') })
   await page.load()
   await page.create()
+  assert.equal(page.data.error, '')
   assert.equal(page.data.canInvite, false)
   assert.equal(page.onShareAppMessage().path, '/pages/index/index')
 })

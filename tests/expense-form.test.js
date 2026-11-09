@@ -12,6 +12,7 @@ function makePage(repository, saved = null) {
       if (name.includes('repository')) return repository
       if (name.includes('currency')) return money
       if (name.includes('voiceExpense')) return require('../domain/voiceExpense')
+      if (name.includes('domain/draft')) return require('../domain/draft')
       if (name.includes('voiceInput')) return { start() {}, stop() {} }
       if (name.includes('config/voice')) return { enabled: false }
       return { CATEGORY: { other: { label: '其他' }, food: { label: '餐饮' } } }
@@ -24,14 +25,14 @@ function makePage(repository, saved = null) {
   page.setData = function (patch) { Object.assign(this.data, patch) }
   return page
 }
-const trip = () => ({ id: 't', baseCurrency: 'CNY', currentMemberId: 'a', members: [{ id: 'a', status: 'active' }] })
+const trip = () => ({ id: 't', status: 'active', baseCurrency: 'CNY', currentMemberId: 'a', currentMemberStatus: 'active', members: [{ id: 'a', status: 'active' }] })
 const quote = { id: 'a'.repeat(32), base: 'USD', quote: 'CNY', provider: 'ECB', rate: '7.1', requestedDate: '2026-09-22', rateDate: '2026-09-22' }
 
 test('editing a bill restores its frozen quote without fetching new rates', async () => {
   const page = makePage({
     getTrip: async () => trip(),
     getFxQuote: async () => { throw new Error('must not refresh existing quote') },
-    getExpense: async () => ({ payerMemberId: 'a', shares: { a: 710 }, originalCurrency: 'USD', originalAmountMinor: 100, amountFen: 710, spentAt: '2026-09-22T12:00:00Z', revision: 2, fx: { mode: 'auto', quoteId: quote.id, ...quote } }),
+    getExpense: async () => ({ canEdit: true, payerMemberId: 'a', shares: { a: 710 }, originalCurrency: 'USD', originalAmountMinor: 100, amountFen: 710, spentAt: '2026-09-22T12:00:00Z', revision: 2, fx: { mode: 'auto', quoteId: quote.id, ...quote } }),
   })
   page.setData({ tripId: 't', expenseId: 'e' })
   await page.loadTrip()
